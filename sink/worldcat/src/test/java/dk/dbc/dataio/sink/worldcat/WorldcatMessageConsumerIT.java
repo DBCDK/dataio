@@ -3,23 +3,26 @@ package dk.dbc.dataio.sink.worldcat;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JMSHeader;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
+import dk.dbc.dataio.jobstore.types.Watermark;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import dk.dbc.dataio.sink.testutil.ObjectFactory;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
+import dk.dbc.ocnrepo.OcnRepoDatabaseMigrator;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
@@ -46,13 +50,26 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class WorldcatMessageConsumerIT extends IntegrationTest {
+/**
+ * Stays on JUnit 4 because {@link JpaIntegrationTest} is annotated
+ * {@code @RunWith(HeavyweightSetupClassRunner.class)}, which drives the container setup and has
+ * no JUnit 5 equivalent to migrate to.
+ */
+public class WorldcatMessageConsumerIT extends JpaIntegrationTest implements PostgresContainerJPAUtils {
+    private static final int JOB_ID = 42;
+    private static final int CHUNK_ID = 7;
+    private static final short ITEM_ID = 3;
+    private static final long SINK_ID = 15;
+    private static final long SINK_VERSION = 1;
+    private static final String RECORD_KEY = "870970:12345678";
+
+    private final JSONBContext jsonbContext = new JSONBContext();
     private final WciruServiceBroker wciruServiceBroker = mock(WciruServiceBroker.class);
     private final WciruServiceConnector wciruServiceConnector = mock(WciruServiceConnector.class);
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
@@ -63,7 +80,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
     @Override
     public JpaTestEnvironment setup() {
         final PGSimpleDataSource dataSource = (PGSimpleDataSource) dbContainer.datasource();
-        migrateDatabase(dataSource);
+        new OcnRepoDatabaseMigrator(dataSource).migrate();
         jpaTestEnvironment = new JpaTestEnvironment(dataSource, "ocnRepoIT",
                 getEntityManagerFactoryProperties(dataSource));
         return jpaTestEnvironment;
@@ -103,11 +120,13 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
+        final ItemDeliveryResult result = bean.deliverItem(itemMessage(), chunkItem,
+                new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
-        assertThat("result status", result.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.DELIVERED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
 
         final WorldCatEntity entity = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString());
         assertThat("WorldCat entity created", entity, is(notNullValue()));
@@ -120,7 +139,10 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
      * When: a known PID is handled
      * And: the checksum indicates no change
      * Then: no WCIRU push is executed
-     * And: the result has status set to IGNORE
+     * And: the item is ignored rather than delivered
+     * <p>
+     * IGNORED is what keeps an item nothing was sent for out of the job's succeeded count, and
+     * leaves the record's delivery watermark where it is.
      */
     @Test
     public void isIgnoredWhenChecksumMatches() {
@@ -132,11 +154,15 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result =  bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
+        final ItemDeliveryResult result = bean.deliverItem(itemMessage(), chunkItem,
+                new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyNoPush();
 
-        assertThat("result status", result.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.IGNORED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("outcome data", StringUtil.asString(result.chunkItem().getData()),
+                is("Checksum indicated no change"));
     }
 
     /**
@@ -165,11 +191,13 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .find(WorldCatEntity.class, pid.toString()).getChecksum();
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
+        final ItemDeliveryResult result = bean.deliverItem(itemMessage(), chunkItem,
+                new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
-        assertThat("result status", result.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.DELIVERED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
 
         final WorldCatEntity entity = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString());
         assertThat("WorldCat entity ocn updated", entity.getOcn(), is(ocn));
@@ -198,11 +226,13 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result =  bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
+        final ItemDeliveryResult result = bean.deliverItem(itemMessage(), chunkItem,
+                new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
-        assertThat("result status", result.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.DELIVERED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("worldcat entity deleted",
                 jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString()), is(nullValue()));
     }
@@ -229,17 +259,19 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
+        final ItemDeliveryResult result = bean.deliverItem(itemMessage(), chunkItem,
+                new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.FAILED));
         assertThat("worldcat entity not deleted",
                 jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString()), is(notNullValue()));
     }
 
     /**
      * When: WCIRU request fails
-     * Then: the result is failed
+     * Then: the item is failed
      */
     @Test
     public void isFailed() {
@@ -255,11 +287,13 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withHoldings(Collections.emptyList()));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        final ChunkItem result = bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
+        final ItemDeliveryResult result = bean.deliverItem(itemMessage(), chunkItem,
+                new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
-        assertThat("result status", result.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.FAILED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     /**
@@ -285,7 +319,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                         .withAction(Holding.Action.INSERT))));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-         bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
+        bean.deliverItem(itemMessage(), chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         final ArgumentCaptor<ChunkItemWithWorldCatAttributes> chunkItemArgumentCaptor =
                 ArgumentCaptor.forClass(ChunkItemWithWorldCatAttributes.class);
@@ -323,7 +357,7 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                         .withAction(Holding.Action.INSERT))));
 
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        bean.handleChunkItem(chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
+        bean.deliverItem(itemMessage(), chunkItem, new OcnRepo(jpaTestEnvironment.getEntityManager()));
 
         verifyPush();
 
@@ -332,11 +366,55 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
     }
 
     /**
-     * When: a chunk result becomes available
-     * Then: it is uploaded to the job-store
+     * When: an input item is already failed
+     * Then: it is ignored and no WCIRU push is executed
      */
     @Test
-    public void uploadsResult() throws JobStoreServiceConnectorException, InvalidMessageException {
+    public void failedByJobProcessor() {
+        final ChunkItem chunkItem = new ChunkItemBuilder().setStatus(ChunkItem.Status.FAILURE).build();
+
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
+        final ItemDeliveryResult result = bean.deliverItem(itemMessage(), chunkItem,
+                new OcnRepo(jpaTestEnvironment.getEntityManager()));
+
+        verifyNoPush();
+
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.IGNORED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("outcome data", StringUtil.asString(result.chunkItem().getData()),
+                is("Failed by job-processor"));
+    }
+
+    /**
+     * When: an input item is already ignored
+     * Then: it is ignored and no WCIRU push is executed
+     */
+    @Test
+    public void ignoredByJobProcessor() {
+        final ChunkItem chunkItem = new ChunkItemBuilder().setStatus(ChunkItem.Status.IGNORE).build();
+
+        final WorldcatMessageConsumer bean = newMessageConsumerBean();
+        final ItemDeliveryResult result = bean.deliverItem(itemMessage(), chunkItem,
+                new OcnRepo(jpaTestEnvironment.getEntityManager()));
+
+        verifyNoPush();
+
+        assertThat("verdict", result.status(), is(ItemDeliveryResult.Status.IGNORED));
+        assertThat("outcome status", result.chunkItem().getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("outcome data", StringUtil.asString(result.chunkItem().getData()),
+                is("Ignored by job-processor"));
+    }
+
+    /**
+     * When: an item message is handled
+     * Then: the delivery watermark is consulted for the record it names
+     * <p>
+     * This sink keeps the watermark rather than opting out of it, which is observable only as
+     * the lookup being made.
+     */
+    @Test
+    public void watermarkIsConsulted() throws InvalidMessageException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.getWatermark(anyInt(), anyString())).thenReturn(Optional.<Watermark>empty());
         whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
                 .withOcn("42")
                 .withEvents(new WciruServiceBroker.Event()
@@ -346,61 +424,11 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                 .withPid(Pid.of("778899-test:new").toString())
                 .withHoldings(Collections.emptyList()));
 
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).appendItem(chunkItem).build();
-        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-
         final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        bean.handleConsumedMessage(message);
+        bean.handleConsumedMessage(itemMessage(chunkItem));
 
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyInt(), anyLong());
+        verify(jobStoreServiceConnector).getWatermark((int) SINK_ID, RECORD_KEY);
     }
-
-    /**
-     * When: an input chunk item is already failed
-     * Then: it is ignored
-     */
-    @Test
-    public void failedByJobProcessor() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
-                .setItems(Collections.singletonList(
-                        new ChunkItemBuilder().setStatus(ChunkItem.Status.FAILURE).build()))
-                .build();
-
-        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-
-        final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
-
-        final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyInt(), anyLong());
-
-        assertThat(chunkArgumentCaptor.getValue().getType(), is(Chunk.Type.DELIVERED));
-        assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
-    }
-
-    /**
-     * When: an input chunk item is already ignored
-     * Then: it is ignored
-     */
-    @Test
-    public void ignoredByJobProcessor() throws JobStoreServiceConnectorException {
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
-                .setItems(Collections.singletonList(
-                        new ChunkItemBuilder().setStatus(ChunkItem.Status.IGNORE).build()))
-                .build();
-
-        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-
-        final WorldcatMessageConsumer bean = newMessageConsumerBean();
-        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
-
-        final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyInt(), anyLong());
-
-        assertThat(chunkArgumentCaptor.getValue().getType(), is(Chunk.Type.DELIVERED));
-        assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
-    }
-
 
     private Map<String, String> getEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
         final Map<String, String> properties = new HashMap<>();
@@ -430,6 +458,26 @@ public class WorldcatMessageConsumerIT extends IntegrationTest {
                             StringUtil.asBytes(jsonbContext.marshall(attributes)),
                             StringUtil.asBytes(data)).getBytes())
                     .build();
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private ConsumedMessage itemMessage() {
+        return itemMessage(new ChunkItemBuilder().build());
+    }
+
+    private ConsumedMessage itemMessage(ChunkItem chunkItem) {
+        final Map<String, Object> headers = new HashMap<>();
+        headers.put(JMSHeader.payload.name, JMSHeader.ITEM_PAYLOAD_TYPE);
+        headers.put(JMSHeader.jobId.name, JOB_ID);
+        headers.put(JMSHeader.chunkId.name, (long) CHUNK_ID);
+        headers.put(JMSHeader.itemId.name, ITEM_ID);
+        headers.put(JMSHeader.sinkId.name, SINK_ID);
+        headers.put(JMSHeader.sinkVersion.name, SINK_VERSION);
+        headers.put(JMSHeader.recordKey.name, RECORD_KEY);
+        try {
+            return new ConsumedMessage("messageId", headers, jsonbContext.marshall(chunkItem));
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

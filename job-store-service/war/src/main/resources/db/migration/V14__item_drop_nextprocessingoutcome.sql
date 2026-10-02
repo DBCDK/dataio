@@ -1,0 +1,19 @@
+-- Drops the per-item processing outcome of the second flow revision.
+--
+-- The column held the output of running an item through the other revision of its flow, written
+-- only for acceptance-test runs and read only by the diff sink. Neither exists any more: the
+-- acceptance test runners under cli/ do the comparison locally against flow-store and create no
+-- job at all, and the processors have long passed a null 'next' list to Chunk.addAllItems, so
+-- nothing has written a value here for some time. DI-3016 removes the diff sink, the jobs/acctests
+-- resource and the .../processed/next resource that exposed this column.
+--
+-- Runs in a transaction, so a failure rolls back cleanly and Flyway re-runs this script on the next
+-- startup with no manual cleanup. Not CONCURRENTLY, deliberately: dropping a column is a catalogue
+-- update rather than a table rewrite, so the ACCESS EXCLUSIVE lock is held briefly and splitting the
+-- statement would gain nothing.
+--
+-- Rolling restart: the column is nullable, but ItemEntity maps it, so the previous build names it in
+-- the SELECT and INSERT Hibernate generates for every item. An instance of that build still serving
+-- when this runs therefore fails on every item read and every item write, not only while
+-- partitioning. Take job-store fully out before the new build starts and runs this migration.
+alter table item drop column nextprocessingoutcome;

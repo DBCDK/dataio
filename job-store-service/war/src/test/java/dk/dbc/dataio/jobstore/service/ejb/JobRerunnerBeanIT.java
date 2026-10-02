@@ -328,6 +328,56 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("include filter 3rd index", includeFilter.get(2), is(true));
     }
 
+    @org.junit.Test
+    public void rerunRawRepoHarvesterJob_itemWithoutRecordIdIsNotHarvested()
+            throws HarvesterTaskServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForRawRepoJob();
+        appendTerminationItem(rerun);
+
+        persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, rawRepoHarvesterToken));
+
+        final ArgumentCaptor<HarvestRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(HarvestRecordsRequest.class);
+        verify(rrHarvesterServiceConnector).createHarvestTask(eq(rawRepoHarvesterToken.getId()), argumentCaptor.capture());
+
+        final HarvestRecordsRequest request = argumentCaptor.getValue();
+        assertThat("request bibliographic record IDs", request.getRecords()
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                is(Arrays.asList("id0", "id1", "id2")));
+    }
+
+    @org.junit.Test
+    public void rerunTickleRepoHarvesterIncrementalJob_itemWithoutRecordIdIsNotHarvested()
+            throws HarvesterTaskServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForTickleRepoIncrementalJob();
+        appendTerminationItem(rerun);
+        rerun.getJob().setCachedSink(newPersistedSinkCacheEntity());
+
+        persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, tickleRepoHarvesterToken));
+
+        final ArgumentCaptor<HarvestRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(HarvestRecordsRequest.class);
+        verify(tickleHarvesterServiceConnector).createHarvestTask(eq(tickleRepoHarvesterToken.getId()), argumentCaptor.capture());
+
+        final HarvestRecordsRequest request = argumentCaptor.getValue();
+        assertThat("request bibliographic record IDs", request.getRecords()
+                        .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                is(Arrays.asList("id0", "id1", "id2")));
+    }
+
+    /**
+     * Appends a chunk holding a single item with a null record id, mirroring the
+     * termination chunk {@code PgJobStoreRepository.createJobTerminationChunkEntity}
+     * appends to a job.
+     */
+    private void appendTerminationItem(RerunEntity rerun) {
+        final int jobId = rerun.getJob().getId();
+        final ChunkEntity chunk = newPersistedChunkEntity(new ChunkEntity.Key(1, jobId));
+
+        final ItemEntity item = newItemEntity(new ItemEntity.Key(jobId, chunk.getKey().getId(), (short) 0));
+        item.withRecordInfo(new RecordInfo(null))
+                .withPositionInDatafile(3);
+        persist(item);
+    }
+
     private RerunEntity getRerunEntityForRawRepoJob() {
         return getRerunEntity(createJobSpecification()
                 .withAncestry(new JobSpecification.Ancestry()

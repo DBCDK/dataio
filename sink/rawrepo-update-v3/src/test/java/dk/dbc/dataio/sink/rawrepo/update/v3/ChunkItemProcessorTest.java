@@ -3,6 +3,7 @@ package dk.dbc.dataio.sink.rawrepo.update.v3;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.sink.rawrepo.update.v3.connector.UpdateRequest;
 import dk.dbc.dataio.sink.rawrepo.update.v3.connector.UpdateResponse;
 import dk.dbc.dataio.sink.rawrepo.update.v3.connector.UpdateResponseStatus;
@@ -76,11 +77,12 @@ class ChunkItemProcessorTest {
         when(connector.update(any())).thenReturn(okResponse());
 
         // no "type" key → UpdateRequest.type stays at its default "dbc"
-        ChunkItem result = new ChunkItemProcessor(connector, config())
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests("{\"submitter\":\"870970\",\"templateName\":\"bog\",\"content\":{}}"));
 
         verify(connector).update(any(UpdateRequest.class));
-        assertThat(result.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.DELIVERED));
     }
 
     @Test
@@ -124,35 +126,60 @@ class ChunkItemProcessorTest {
     void process_okResponse_returnsSuccessfulChunkItem() throws Exception {
         when(connector.update(any())).thenReturn(okResponse());
 
-        ChunkItem result = new ChunkItemProcessor(connector, config())
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
-        assertThat(result.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(result.getDiagnostics() == null || result.getDiagnostics().isEmpty(), is(true));
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.DELIVERED));
+        assertThat(result.chunkItem().getDiagnostics() == null || result.chunkItem().getDiagnostics().isEmpty(), is(true));
     }
 
     @Test
     void process_errorResponse_returnsFailedChunkItemWithDiagnostics() throws Exception {
         when(connector.update(any())).thenReturn(errorResponse("Felt 245 delfelt a mangler"));
 
-        ChunkItem result = new ChunkItemProcessor(connector, config())
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
-        assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(result.getDiagnostics().size(), is(1));
-        assertThat(result.getDiagnostics().getFirst().getMessage(), is("Felt 245 delfelt a mangler"));
-        assertThat(new String(result.getData(), StandardCharsets.UTF_8).contains("e01 00"), is(true));
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.FAILED));
+        assertThat(result.chunkItem().getDiagnostics().size(), is(1));
+        assertThat(result.chunkItem().getDiagnostics().getFirst().getMessage(), is("Felt 245 delfelt a mangler"));
+        assertThat(new String(result.chunkItem().getData(), StandardCharsets.UTF_8).contains("e01 00"), is(true));
+    }
+
+    @Test
+    void process_warningOnlyResponse_isDelivered() throws Exception {
+        ValidationMessage vm = new ValidationMessage();
+        vm.setType(ValidationStatus.WARNING);
+        vm.setMessage("Felt 504 delfelt a er forældet");
+        UpdateResponse response = new UpdateResponse();
+        response.setStatus(UpdateResponseStatus.ERROR);
+        response.setErrors(List.of(vm));
+        when(connector.update(any())).thenReturn(response);
+
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config())
+                .process(chunkItemWithRequests(req()));
+
+        // A warning accompanies an accepted record, so the item keeps its SUCCESS status and counts
+        // as delivered. This is the case a verdict derived from the item status would decide by way
+        // of ChunkItem.withDiagnostics rather than here.
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.DELIVERED));
+        assertThat(result.chunkItem().getDiagnostics().size(), is(1));
+        assertThat(result.chunkItem().getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.WARNING));
     }
 
     @Test
     void process_multipleRequests_allAttempted() throws Exception {
         when(connector.update(any())).thenReturn(okResponse());
 
-        ChunkItem result = new ChunkItemProcessor(connector, config())
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req(), req("dbc")));
 
         verify(connector, times(2)).update(any());
-        assertThat(result.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.DELIVERED));
     }
 
     @Test
@@ -161,12 +188,13 @@ class ChunkItemProcessorTest {
                 .thenReturn(okResponse())
                 .thenReturn(errorResponse("error in second"));
 
-        ChunkItem result = new ChunkItemProcessor(connector, config())
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req(), req()));
 
-        assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(result.getDiagnostics().size(), is(1));
-        String data = new String(result.getData(), StandardCharsets.UTF_8);
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.FAILED));
+        assertThat(result.chunkItem().getDiagnostics().size(), is(1));
+        String data = new String(result.chunkItem().getData(), StandardCharsets.UTF_8);
         assertThat(data.contains("-> OK"), is(true));
         assertThat(data.contains("e01 00"), is(true));
     }
@@ -181,23 +209,25 @@ class ChunkItemProcessorTest {
         response.setErrors(List.of(vm));
         when(connector.update(any())).thenReturn(response);
 
-        ChunkItem result = new ChunkItemProcessor(connector, config())
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
-        assertThat(result.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(result.getDiagnostics() == null || result.getDiagnostics().isEmpty(), is(true));
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.DELIVERED));
+        assertThat(result.chunkItem().getDiagnostics() == null || result.chunkItem().getDiagnostics().isEmpty(), is(true));
     }
 
     @Test
     void process_connectorException_accumulatedAsFatalDiagnostic() throws Exception {
         when(connector.update(any())).thenThrow(new UpdateServiceConnectorException("auth failed"));
 
-        ChunkItem result = new ChunkItemProcessor(connector, config())
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config())
                 .process(chunkItemWithRequests(req()));
 
-        assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(result.getDiagnostics().size(), is(1));
-        assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.FAILED));
+        assertThat(result.chunkItem().getDiagnostics().size(), is(1));
+        assertThat(result.chunkItem().getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
     }
 
     @Test
@@ -208,9 +238,10 @@ class ChunkItemProcessorTest {
                 .withType(ChunkItem.Type.STRING)
                 .withEncoding(StandardCharsets.UTF_8);
 
-        ChunkItem result = new ChunkItemProcessor(connector, config()).process(item);
+        ItemDeliveryResult result = new ChunkItemProcessor(connector, config()).process(item);
 
-        assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(result.chunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(result.status(), is(ItemDeliveryResult.Status.FAILED));
+        assertThat(result.chunkItem().getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
     }
 }

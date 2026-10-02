@@ -1,6 +1,5 @@
 package dk.dbc.dataio.sink.periodicjobs.pickup;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.FtpPickup;
@@ -66,10 +65,9 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                                 .withFtpUser(USERNAME)
                                 .withFtpPassword(PASSWORD)
                                 .withFtpSubdirectory(PUT_DIR))));
-        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsFtpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
         FtpClient ftpClient = new FtpClient()
                 .withHost("localhost")
                 .withPort(fakeFtpServer.getServerControlPort())
@@ -117,10 +115,9 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                                 .withFtpUser(USERNAME)
                                 .withFtpPassword(PASSWORD)
                                 .withFtpSubdirectory(PUT_DIR))));
-        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsFtpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
         FtpClient ftpClient = new FtpClient()
                 .withHost("localhost")
                 .withPort(fakeFtpServer.getServerControlPort())
@@ -146,11 +143,10 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                                 .withFtpUser(USERNAME)
                                 .withFtpPassword(PASSWORD)
                                 .withFtpSubdirectory(PUT_DIR))));
-        Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
         PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
 
         env().getPersistenceContext().run(() ->
-                periodicJobsFtpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsFtpFinalizerBean.deliver(jobId, 0, delivery, env().getEntityManager()));
 
         FtpClient ftpClient = new FtpClient()
                 .withHost("localhost")

@@ -7,8 +7,7 @@
       "queue": "sink::dmat",
       "sinkType": "DMAT",
       "sinkConfig": null,
-      "description": "DMat staging",
-      "sequenceAnalysisOption": "ALL"
+      "description": "DMat staging"
     }
   },
   {
@@ -26,8 +25,7 @@
           "dbckat-update-ims"
         ]
       },
-      "description": "DPF sink på dataio staging som skal snakke med basismig Update. ",
-      "sequenceAnalysisOption": "ALL"
+      "description": "DPF sink på dataio staging som skal snakke med basismig Update. "
     }
   },
   {
@@ -41,8 +39,7 @@
         "@class": "dk.dbc.dataio.commons.types.EsSinkConfig",
         "esAction": "INSERT"
       },
-      "description": "Ny tracer bullet sink",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Ny tracer bullet sink"
     }
   },
   {
@@ -53,8 +50,7 @@
       "queue": "sink::holdings-items/fbstest",
       "sinkType": "HOLDINGS_ITEMS",
       "sinkConfig": null,
-      "description": "Test af holdings items afleveringer til solr-doc-store",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Test af holdings items afleveringer til solr-doc-store"
     }
   },
   {
@@ -65,8 +61,7 @@
       "queue": "sink::batch-exchange/loadtest",
       "sinkType": "HIVE",
       "sinkConfig": null,
-      "description": "Batchexchange hive sink på staging som rammer Corepo. Bruges også til loadtest",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Batchexchange hive sink på staging som rammer Corepo. Bruges også til loadtest"
     }
   },
   {
@@ -80,8 +75,7 @@
         "@class": "dk.dbc.dataio.commons.types.ImsSinkConfig",
         "endpoint": "http://dummy.url"
       },
-      "description": "lidt beskrivelse",
-      "sequenceAnalysisOption": "ALL"
+      "description": "lidt beskrivelse"
     }
   },
   {
@@ -92,8 +86,7 @@
       "queue": "sink::tickle-repo/incremental",
       "sinkType": "TICKLE",
       "sinkConfig": null,
-      "description": "Inkremental leveringer til kilde repositoriet",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Inkremental leveringer til kilde repositoriet"
     }
   },
   {
@@ -104,8 +97,7 @@
       "queue": "sink::tickle-repo/total",
       "sinkType": "TICKLE",
       "sinkConfig": null,
-      "description": "Totalleveringer til kilde repositoriet",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Totalleveringer til kilde repositoriet"
     }
   },
   {
@@ -116,8 +108,7 @@
       "queue": "sink::marcconv",
       "sinkType": "MARCCONV",
       "sinkConfig": null,
-      "description": "Konverteringsservice for poster til MARC format.",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Konverteringsservice for poster til MARC format."
     }
   },
   {
@@ -137,8 +128,7 @@
           "hvad skal der staa her"
         ]
       },
-      "description": "Til OCLCs test WCIRU",
-      "sequenceAnalysisOption": "ID_ONLY"
+      "description": "Til OCLCs test WCIRU"
     }
   },
   {
@@ -149,8 +139,7 @@
       "queue": "sink::periodic-jobs",
       "sinkType": "PERIODIC_JOBS",
       "sinkConfig": null,
-      "description": "Specialiserede afleveringer for periodiske job.",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Specialiserede afleveringer for periodiske job."
     }
   },
   {
@@ -161,8 +150,7 @@
       "queue": "sink::dataio/sinks/periodic-jobs-empty-jobs-test",
       "sinkType": "PERIODIC_JOBS",
       "sinkConfig": null,
-      "description": "Periodiske job - tomme job test",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Periodiske job - tomme job test"
     }
   },
   {
@@ -178,8 +166,7 @@
         "esAction": "INSERT",
         "databaseName": "test"
       },
-      "description": "test",
-      "sequenceAnalysisOption": "ALL"
+      "description": "test"
     }
   },
   {
@@ -195,8 +182,7 @@
         "esAction": "INSERT",
         "databaseName": "default"
       },
-      "description": "Test basis sink II ",
-      "sequenceAnalysisOption": "ALL"
+      "description": "Test basis sink II "
     }
   },
   {
@@ -207,8 +193,7 @@
       "queue": "sink::dummy",
       "sinkType": "DUMMY",
       "sinkConfig": null,
-      "description": "description",
-      "sequenceAnalysisOption": "ALL"
+      "description": "description"
     }
   }
 ]

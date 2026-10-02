@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>dataio-cli</artifactId>
+        <groupId>dk.dbc</groupId>
+        <version>21.2.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>dataio-cli-diff</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>artemis-jse-app</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-jslib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.deblockt</groupId>
+            <artifactId>json-diff</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.java-diff-utils</groupId>
+            <artifactId>java-diff-utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>set-test-environment-properties</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${basedir}/target/testenv.properties</file>
+                            </files>
+                            <!-- set this to false to debug whether the expected properties file is found -->
+                            <quiet>true</quiet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <testenv.cat>${testenv.cat}</testenv.cat>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <testenv.diff>${testenv.diff}</testenv.diff>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <testenv.grep>${testenv.grep}</testenv.grep>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <testenv.jq>${testenv.jq}</testenv.jq>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <testenv.sed>${testenv.sed}</testenv.sed>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <testenv.xmllint>${testenv.xmllint}</testenv.xmllint>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>validate-test-environment</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${basedir}/script/validate-test-environment.sh</executable>
+                            <arguments>
+                                <argument>${basedir}/target</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -12,7 +12,6 @@ public class ChunkBuilder {
     private long chunkId = 1;
     private final Chunk.Type type;
     private List<ChunkItem> items = new ArrayList<>(Collections.singletonList(new ChunkItemBuilder().build()));
-    private List<ChunkItem> next = null;
 
     public ChunkBuilder(Chunk.Type type) {
         this.type = type;
@@ -39,14 +38,9 @@ public class ChunkBuilder {
         return this;
     }
 
-    public ChunkBuilder setNextItems(List<ChunkItem> nextItems) {
-        this.next = nextItems;
-        return this;
-    }
-
     public Chunk build() {
         final Chunk chunk = new Chunk(jobId, chunkId, type);
-        chunk.addAllItems(items, next);
+        chunk.addAllItems(items);
         return chunk;
     }
 }

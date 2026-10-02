@@ -2,17 +2,15 @@ package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.dataio.commons.types.SinkContent;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.nullValue;
 
 public class RecordInfoTest {
     private final String id = "42";
-    private final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
     @Test
     public void marshalling() throws JSONBException {
@@ -30,15 +28,30 @@ public class RecordInfoTest {
     }
 
     @Test
-    public void getKeys_idIsNull_returnsEmptySet() {
-        RecordInfo recordInfo = new RecordInfo(null);
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(Collections.emptySet()));
+    public void getCorrelationKey_returnsId() {
+        RecordInfo recordInfo = new RecordInfo(id);
+        assertThat(recordInfo.getCorrelationKey(), is(id));
     }
 
     @Test
-    public void getKeys_idIsNotNull_returnsSetContainingId() {
+    void getCorrelationKey_idIsNull_returnsNull() {
+        RecordInfo recordInfo = new RecordInfo(null);
+        assertThat(recordInfo.getCorrelationKey(), is(nullValue()));
+    }
+
+    @Test
+    void marshalling_idIsNull_roundTrips() throws JSONBException {
+        JSONBContext jsonbContext = new JSONBContext();
+        RecordInfo recordInfo = new RecordInfo(null);
+        RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
+        assertThat("unmarshalled", unmarshalled, is(recordInfo));
+        assertThat("unmarshalled id", unmarshalled.getId(), is(nullValue()));
+    }
+
+    @Test
+    public void marshalling_correlationKeyIsNotSerialized() throws JSONBException {
+        JSONBContext jsonbContext = new JSONBContext();
         RecordInfo recordInfo = new RecordInfo(id);
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption).size(), is(1));
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption).contains(id), is(true));
+        assertThat(jsonbContext.marshall(recordInfo).contains("correlationKey"), is(false));
     }
 }

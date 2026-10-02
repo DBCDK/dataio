@@ -19,6 +19,7 @@ Runs the full processing pipeline locally for manual testing:
 
 - Docker + Docker Compose v2 (`docker compose version`)
 - Maven 3.9+
+- Python 3.9+ (no third-party packages needed)
 - `jq` and `zip`
 - Access to `docker-metascrum.artifacts.dbccloud.dk` and `docker-dbc.artifacts.dbccloud.dk`
 
@@ -70,7 +71,100 @@ The script uploads both passthrough flows, creates the submitter and sink, and c
 
 ---
 
-## 4. Upload test data to file-store
+## 4. Submit jobs
+
+### 4a. With the create-job script
+
+`dev/scripts/create-job.py` uploads a data file to the file-store and submits a
+job referencing it. Its built-in job specification matches the flow binders
+created in step 3, so against the local stack a bare invocation is enough. Run
+it from the project root. It uses the standard library only, so there is nothing
+to install.
+
+```bash
+NASHORN_JOB_ID=$(python3 dev/scripts/create-job.py dev/testdata/sample-records.ndjson)
+GRAALJS_JOB_ID=$(python3 dev/scripts/create-job.py dev/testdata/sample-records.ndjson --destination dev-graaljs)
+
+echo "Nashorn job ID: $NASHORN_JOB_ID"
+echo "GraalJS job ID: $GRAALJS_JOB_ID"
+```
+
+The job ID goes to stdout and progress goes to stderr, so the command
+substitution above captures the ID alone.
+
+#### Flow binder resolution
+
+The job-store picks a flow binder by matching five fields of the job
+specification against the binders registered in the flow-store: `packaging`,
+`format`, `charset`, `submitterId` and `destination`. Each has its own flag, and
+each takes any value the target flow-store knows about.
+
+```bash
+python3 dev/scripts/create-job.py data.addi \
+  --packaging addi-xml --format dmat --charset utf8 \
+  --submitter 150015 --destination dmat
+```
+
+`dev-nashorn` and `dev-graaljs` are only what `seed-flowstore.sh` happens to
+register locally. A job whose five fields match no binder is created and then
+fails with a `Could not retrieve FlowBinder` diagnostic, visible in the job
+state (step 5).
+
+Pass a whole specification with `--spec FILE` when you have one. It expects the
+bare specification, not a job input stream wrapping it in a `jobSpecification`
+field. Individual flags still override single fields on top of the file.
+
+#### Other options
+
+| Option | Effect |
+|---|---|
+| `--type` | Job type: `TRANSIENT`, `PERSISTENT`, `TEST` and the rest of `JobSpecification.Type`. |
+| `--result-mail-initials` | Sets `resultmailInitials`. Optional, as are the notification mail fields. |
+| `--datafile-id ID` | Reuses a file already in the file-store instead of uploading a new one. |
+| `--dry-run` | Prints the job input stream that would be posted and stops, without touching the network. |
+| `--part-number N`, `--not-end-of-job` | Submit a job in several parts. |
+| `--timeout SECONDS` | Per-request timeout, 60 by default. |
+
+`--help` lists them all.
+
+#### Submitting to staging or production
+
+`--instance` picks the target. `local` is the default. `staging` and `prod` each
+carry the cluster URLs of the two services the script talks to:
+
+| Instance | file-store | job-store |
+|---|---|---|
+| `local` | `localhost:8082` | `localhost:8080` |
+| `staging` | `dataio-filestore-service.metascrum-staging.svc.cloud.dbc.dk` | `dataio-jobstore-service.metascrum-staging.svc.cloud.dbc.dk` |
+| `prod` | `dataio-filestore-service.metascrum-prod.svc.cloud.dbc.dk` | `dataio-jobstore-service.metascrum-prod.svc.cloud.dbc.dk` |
+
+Each is reached over plain HTTP at the usual `/dataio/<service>-service` path.
+`--dry-run` prints the pair a name stands for.
+
+```bash
+python3 dev/scripts/create-job.py records.xml --instance staging --spec myjob.json
+```
+
+Two things differ from a local run:
+
+- The built-in job specification is refused, since it only resolves against the
+  seeded local binders. Pass `--spec`, or give `--type` and all five resolution
+  fields as flags.
+- The script prints the target and asks for confirmation before submitting.
+  `--yes` skips the prompt, and is required when stdin is not a terminal.
+
+`--file-store URL` and `--job-store URL` address the two services directly and
+take precedence over the instance. Naming a non-local service URL counts as a
+non-local target, prompt and all.
+
+`--instance` also accepts the URL of an instance that serves a `/urls` map, such
+as `http://dataio.dbc.dk`, in which case the two service URLs are read from
+there. That is how `cli/job-replicator` and `cli/datafile-exporter` find their
+endpoints.
+
+### 4b. By hand with curl
+
+Upload the data file and keep the returned file-store ID:
 
 ```bash
 FILE_URN=$(curl -s -D - -X POST http://localhost:8082/dataio/file-store-service/files \
@@ -81,11 +175,7 @@ FILE_URN=$(curl -s -D - -X POST http://localhost:8082/dataio/file-store-service/
 echo "File URN: urn:dataio-fs:$FILE_URN"
 ```
 
----
-
-## 5. Submit jobs
-
-### 5a. Nashorn
+Submit to Nashorn:
 
 ```bash
 JOB=$(curl -s -X POST \
@@ -110,7 +200,7 @@ NASHORN_JOB_ID=$(echo "$JOB" | jq '.jobId')
 echo "Nashorn job ID: $NASHORN_JOB_ID"
 ```
 
-### 5b. GraalJS
+Submit to GraalJS, which differs only in the destination:
 
 ```bash
 JOB=$(curl -s -X POST \
@@ -135,9 +225,12 @@ GRAALJS_JOB_ID=$(echo "$JOB" | jq '.jobId')
 echo "GraalJS job ID: $GRAALJS_JOB_ID"
 ```
 
+The job-store requires `Content-Type: application/json` on this call and answers
+415 without it.
+
 ---
 
-## 6. Monitor status
+## 5. Monitor status
 
 ### Job state
 
@@ -196,7 +289,7 @@ Replace `0/0` with the actual `chunkId/itemId`.
 
 ---
 
-## 7. Teardown
+## 6. Teardown
 
 ```bash
 # Stop containers, keep volumes (data survives restart)

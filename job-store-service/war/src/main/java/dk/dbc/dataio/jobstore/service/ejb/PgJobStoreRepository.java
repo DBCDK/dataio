@@ -9,13 +9,11 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.ObjectFactory;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
-import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
@@ -38,7 +36,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -48,6 +45,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
+import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -69,13 +67,10 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import static java.lang.String.format;
 
 /**
@@ -88,10 +83,18 @@ public class PgJobStoreRepository extends RepositoryBase {
     @Inject
     DependencyTrackingService dependencyTrackingService;
 
+    @EJB
+    protected JobGateRepository jobGateRepository;
+
     JSONBContext jsonbContext = new JSONBContext();
 
     public PgJobStoreRepository withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
+        return this;
+    }
+
+    public PgJobStoreRepository withJobGateRepository(JobGateRepository jobGateRepository) {
+        this.jobGateRepository = jobGateRepository;
         return this;
     }
 
@@ -124,23 +127,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).count(query);
     }
 
-    public List<Integer> findDependingJobs(int jobId) {
-        Query query = entityManager.createNativeQuery("select distinct jobid from dependencytracking where waitingon::jsonb @@ '$[*].jobId==" + jobId + "'");
-        query.setParameter(1, jobId);
-        @SuppressWarnings("unchecked")
-        List<Integer> list = new ArrayList<Integer>(query.getResultList());
-        list.remove(Integer.valueOf(jobId));
-        return list;
-    }
-
     public int resetStatus(Set<Integer> jobIds, ChunkSchedulingStatus fromStatus, ChunkSchedulingStatus toStatus) {
-        return dependencyTrackingService.resetStatus(fromStatus, toStatus, jobIds.toArray(Integer[]::new));
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void resetChunk(DependencyTracking e, ChunkSchedulingStatus status) {
-        e.setStatus(status);
-        entityManager.persist(e);
+        return dependencyTrackingService.resetStatus(fromStatus, toStatus, jobIds);
     }
 
     public List<ItemInfoSnapshot> listItems(String query)
@@ -310,7 +298,6 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param chunkId         id of the chunk to be created
      * @param maxChunkSize    maximum number of items to be associated to the chunk
      * @param dataPartitioner data partitioner used for item data extraction
-     * @param keyGenerator    dependency tracking key generator
      * @param dataFileId      id of data file from where the items of the chunk originated
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion
      * @throws JobStoreException on referenced entities not found
@@ -319,7 +306,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Timed
     public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
-                                         DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId)
+                                         DataPartitioner dataPartitioner, String dataFileId)
             throws JobStoreException {
 
         final ChunkEntity chunkEntity = persistChunk(jobId, chunkId, dataFileId);
@@ -329,7 +316,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 createChunkItemEntities(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner);
         if (chunkItemEntities.size() > 0) {
             chunkEntity.setNumberOfItems(chunkItemEntities.size());
-            chunkEntity.setSequenceAnalysisData(getSequenceAnalysisData(keyGenerator, chunkItemEntities));
+            chunkEntity.setContainsLiveHeadOrSectionRecord(containsLiveHeadOrSectionRecord(chunkItemEntities));
 
             final State chunkState = chunkItemEntities.getChunkState();
             chunkEntity.setState(chunkState);
@@ -358,10 +345,38 @@ public class PgJobStoreRepository extends RepositoryBase {
      * to allow the method to be called internally as an EJB business method.
      * </p>
      *
-     * @param jobId      id of job for which the chunk is to be created
-     * @param chunkId    id of the chunk to be created
-     * @param dataFileId for fake chunk
-     * @param itemStatus status for JOB_END item
+     * <p>
+     * This is also where the job's per-job gate comes into existence, see
+     * docs/chunk-scheduling-redesign.md, "Barrier Chunks - Per-Job Gate". Three writes
+     * belong in this one transaction, under the job row lock taken below and the barrier scope's
+     * advisory lock:
+     * </p>
+     * <ul>
+     * <li>{@code data_chunks_expected}, from the {@code dataChunksExpected} parameter. It must
+     * <b>not</b> be re-read here: this method increments {@code numberOfChunks} itself, so a read
+     * taken here is one too high, the counter can never reach the total and the gate never opens.
+     * It must not be written in {@code markJobAsPartitioned} either, because that runs in a
+     * separate transaction whose uncommitted write is invisible to the gate verdict below.</li>
+     * <li>{@code termination_barrier_lifted = false}, the one place a barrier comes into
+     * existence. It stays in the same transaction as the {@code is_termination} row, so a job
+     * cannot end up with a termination row and an unset barrier, which is what makes that column's
+     * nullable default safe.</li>
+     * <li>The termination chunk's own {@code dependencytracking} row, with its gate verdict. The
+     * gate is evaluated here and not only on delivery because a job whose data chunks all finish
+     * delivering before partitioning ends gets no further delivery to evaluate on. Jobs with zero
+     * data chunks are just the extreme case of that.</li>
+     * </ul>
+     *
+     * @param jobId              id of job for which the chunk is to be created
+     * @param chunkId            id of the chunk to be created
+     * @param dataFileId         for fake chunk
+     * @param itemStatus         status for JOB_END item
+     * @param dataChunksExpected the job's data-chunk count as read in {@code markJobAsPartitioned}
+     *                           before this method runs, which for a job with a termination chunk
+     *                           is the same value as {@code chunkId}
+     * @param terminationRow the values the termination chunk's row is created from, written to
+     *                           PostgreSQL here so that the row carries its gate verdict from the
+     *                           moment it exists. This is the only insert of that row
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion*
      * @throws JobStoreException on referenced entities not found
      */
@@ -370,7 +385,9 @@ public class PgJobStoreRepository extends RepositoryBase {
     public ChunkEntity createJobTerminationChunkEntity(
             int jobId,
             int chunkId,
-            String dataFileId, ChunkItem.Status itemStatus) throws JobStoreException {
+            String dataFileId, ChunkItem.Status itemStatus,
+            int dataChunksExpected,
+            DependencyTracking terminationRow) throws JobStoreException {
 
         final Date chunkBegin = new Date();
 
@@ -397,7 +414,12 @@ public class PgJobStoreRepository extends RepositoryBase {
                 .withState(itemState)
                 .withPartitioningOutcome(chunkItem)
                 .withProcessingOutcome(chunkItem)
-                .withRecordInfo(new RecordInfo("End Item"));
+                // Null record id, and thereby a null correlationKey, is deliberate: this
+                // item is a per-job barrier, not a bibliographic record. A non-null id
+                // would serialise every job's termination item into one broker group and
+                // make them share a delivery watermark key. See
+                // docs/chunk-scheduling-redesign.md, Open Questions 1.
+                .withRecordInfo(new RecordInfo(null));
 
         entityManager.persist(itemEntity);
 
@@ -407,14 +429,13 @@ public class PgJobStoreRepository extends RepositoryBase {
 
         // Items were created, so now create the chunk to which they belong
         final StateChange chunkStateChange = chunkItemEntities.chunkStateChange.setBeginDate(chunkBegin);
-        SequenceAnalysisData sequenceAnalysisData = new SequenceAnalysisData(new HashSet<>());
 
         final State chunkState = new State();
         final Date now = new Date();
         chunkState.updateState(new StateChange().setPhase(State.Phase.PARTITIONING).setBeginDate(chunkBegin).setEndDate(now).setSucceeded(1));
         chunkState.updateState(new StateChange().setPhase(State.Phase.PROCESSING).setBeginDate(now).setEndDate(now).setSucceeded(1));
 
-        final ChunkEntity chunkEntity = initializeChunkEntityAndSetValues(jobId, chunkId, dataFileId, chunkItemEntities, sequenceAnalysisData, chunkState);
+        final ChunkEntity chunkEntity = initializeChunkEntityAndSetValues(jobId, chunkId, dataFileId, chunkItemEntities, chunkState);
         entityManager.persist(chunkEntity);
         entityManager.flush();
         entityManager.refresh(chunkEntity);
@@ -423,8 +444,33 @@ public class PgJobStoreRepository extends RepositoryBase {
         final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
         jobEntity.setNumberOfChunks(jobEntity.getNumberOfChunks() + 1);
         jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
+        jobEntity.setDataChunksExpected(dataChunksExpected);
+        jobEntity.setTerminationBarrierLifted(false);
         updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
         entityManager.flush();
+
+        // Barrier scope locked after the job row, never before, see the lock ordering note on
+        // JobGateBean. It serializes this verdict against a concurrent re-trigger for the same
+        // (sink, submitter), which would otherwise let both decline and leave the gate closed with
+        // nothing left to open it.
+        final int sinkId = terminationRow.getSinkId();
+        final int submitter = terminationRow.getSubmitter();
+        jobGateRepository.advisoryLock(sinkId, submitter);
+
+        // The job row lock is held across the verdict, so a concurrent delivery of the job's last
+        // data chunk either committed its increment first, in which case the count read here is
+        // the higher one, or blocks on the lock above until this transaction commits and then
+        // finds the row and evaluates it. There is no interleaving in which both decline.
+        //
+        // The count is read from the database rather than from jobEntity because the delivery side
+        // increments it with a native statement, which leaves the managed entity stale. The total
+        // is the parameter rather than a read back of the column just written, so the verdict does
+        // not depend on the flush above having happened.
+        final boolean gateOpen =
+                jobGateRepository.dataChunksDelivered(jobId) >= dataChunksExpected
+                        && !jobGateRepository.hasEarlierUndeliveredTermination(sinkId, submitter, jobId);
+        jobGateRepository.insertTerminationRow(terminationRow.getKey(), sinkId, submitter,
+                terminationRow.getStatus(), terminationRow.getPriority(), gateOpen);
 
         return chunkEntity;
     }
@@ -449,6 +495,37 @@ public class PgJobStoreRepository extends RepositoryBase {
         jobState.updateState(stateChange);
         jobEntity.setState(jobState);
         return jobState;
+    }
+
+    /**
+     * Advances the sink_record_delivery_watermark row for (sinkId, recordKey) to
+     * (jobId, chunkId, itemId), but only if that tuple is newer than what is already
+     * stored (see docs/chunk-scheduling-redesign.md, "Upsert on delivery").
+     *
+     * @param sinkId    sink id
+     * @param recordKey opaque, agency-qualified record key
+     * @param jobId     job id
+     * @param chunkId   chunk id
+     * @param itemId    item id
+     */
+    public void upsertWatermark(long sinkId, String recordKey, int jobId, int chunkId, short itemId) {
+        entityManager.createNativeQuery(
+                "INSERT INTO sink_record_delivery_watermark " +
+                        "       (sink_id, record_key, job_id, chunk_id, item_id, last_modified) " +
+                        "VALUES (?1, ?2, ?3, ?4, ?5, now()) " +
+                        "ON CONFLICT (sink_id, record_key) DO UPDATE " +
+                        "  SET job_id = EXCLUDED.job_id, chunk_id = EXCLUDED.chunk_id, " +
+                        "      item_id = EXCLUDED.item_id, last_modified = EXCLUDED.last_modified " +
+                        "  WHERE (EXCLUDED.job_id, EXCLUDED.chunk_id, EXCLUDED.item_id) " +
+                        "      > (sink_record_delivery_watermark.job_id, " +
+                        "         sink_record_delivery_watermark.chunk_id, " +
+                        "         sink_record_delivery_watermark.item_id)")
+                .setParameter(1, Math.toIntExact(sinkId))
+                .setParameter(2, recordKey)
+                .setParameter(3, jobId)
+                .setParameter(4, chunkId)
+                .setParameter(5, itemId)
+                .executeUpdate();
     }
 
     /**
@@ -519,24 +596,15 @@ public class PgJobStoreRepository extends RepositoryBase {
         final Profiler profiler = new Profiler("pgJobStoreRepository.getChunk");
         try {
             final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
-            final ItemListCriteria criteria = new ItemListCriteria()
-                    .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
-                    .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
-                    .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
 
             profiler.start("execute Query");
-            final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
+            final List<ItemEntity> itemEntities = queryChunkItemEntities(jobId, chunkId);
             profiler.stop();
             if (!itemEntities.isEmpty()) {
                 profiler.start("Loop itemEntities");
                 final Chunk chunk = new Chunk(jobId, chunkId, type);
                 for (ItemEntity itemEntity : itemEntities) {
-                    if (PROCESSED == type) {
-                        // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
-                        chunk.insertItem(itemEntity.getProcessingOutcome(), itemEntity.getNextProcessingOutcome());
-                    } else {
-                        chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
-                    }
+                    chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
                 }
                 return chunk;
             }
@@ -544,6 +612,25 @@ public class PgJobStoreRepository extends RepositoryBase {
         } finally {
             LOGGER.info("pgJobStoreRepository.getChunk timings:\n{}", profiler);
         }
+    }
+
+    /**
+     * @param jobId   id of job containing chunk
+     * @param chunkId id of chunk
+     * @return item entities of the given chunk in ascending item ID order,
+     * empty if the chunk has no items
+     */
+    @Stopwatch
+    public List<ItemEntity> getChunkItemEntities(int jobId, int chunkId) {
+        return queryChunkItemEntities(jobId, chunkId);
+    }
+
+    private List<ItemEntity> queryChunkItemEntities(int jobId, int chunkId) {
+        final ItemListCriteria criteria = new ItemListCriteria()
+                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
+                .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
+        return new ItemListQuery(entityManager).execute(criteria);
     }
 
     @Stopwatch
@@ -564,25 +651,6 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     * Retrieves next processing outcome as chunk item
-     *
-     * @param jobId   id of job containing chunk
-     * @param chunkId id of chunk containing item
-     * @param itemId  id of the item
-     * @return next processing outcome
-     * @throws InvalidInputException if unable to find referenced item
-     */
-    @Stopwatch
-    public ChunkItem getNextProcessingOutcome(int jobId, int chunkId, short itemId) throws InvalidInputException {
-        ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
-        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, key);
-        if (itemEntity == null) {
-            throwInvalidInputException(format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId), JobError.Code.INVALID_ITEM_IDENTIFIER);
-        }
-        return itemEntity.getNextProcessingOutcome();
-    }
-
-    /**
      * Updates item entities for given chunk
      *
      * @param chunk chunk
@@ -600,7 +668,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = new PgJobStoreRepository.ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(phase);
 
-        final Iterator<ChunkItem> nextIterator = chunk.nextIterator();
         try {
             for (ChunkItem chunkItem : chunk) {
                 if(JobsBean.isAborted(chunk.getJobId())) throw new JobAborted(chunk.getJobId());
@@ -625,9 +692,6 @@ public class PgJobStoreRepository extends RepositoryBase {
                         .setEndDate(new Date());                                                // ToDo: Chunk type must contain endDate
 
                 setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, chunkItem);
-                if (nextIterator.hasNext()) {
-                    itemEntity.setNextProcessingOutcome(nextIterator.next());
-                }
 
                 setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, itemStateChange);
 
@@ -698,7 +762,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(State.Phase.PARTITIONING);
         try {
-            final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = getSequenceAnalysisOption(jobId);
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
                 if(JobsBean.isAborted(jobId)) throw new JobAborted(jobId);
                 if (dataPartitionerResult == null || dataPartitionerResult.isEmpty()) {
@@ -744,10 +807,6 @@ public class PgJobStoreRepository extends RepositoryBase {
                         .withPositionInDatafile(dataPartitionerResult.getPositionInDatafile());
                 entityManager.persist(itemEntity);
                 chunkItemEntities.entities.add(itemEntity);
-
-                if (dataPartitionerResult.getRecordInfo() != null) {
-                    chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys(sequenceAnalysisOption));
-                }
 
                 if (itemCounter == maxChunkSize) {
                     break;
@@ -829,19 +888,17 @@ public class PgJobStoreRepository extends RepositoryBase {
         chunkEntity.setDataFileId(dataFileId);
         chunkEntity.setNumberOfItems((short) 0);
         chunkEntity.setState(new State());
-        chunkEntity.setSequenceAnalysisData(new SequenceAnalysisData(Collections.emptySet()));
         entityManager.persist(chunkEntity);
         return chunkEntity;
     }
 
     // // TODO: 4/4/17 deprecate this method - use persistChunk() + local changes instead
-    private ChunkEntity initializeChunkEntityAndSetValues(int jobId, int chunkId, String dataFileId, ChunkItemEntities chunkItemEntities, SequenceAnalysisData sequenceAnalysisData, State chunkState) {
+    private ChunkEntity initializeChunkEntityAndSetValues(int jobId, int chunkId, String dataFileId, ChunkItemEntities chunkItemEntities, State chunkState) {
         ChunkEntity chunkEntity;
         chunkEntity = new ChunkEntity();
         chunkEntity.setKey(new ChunkEntity.Key(chunkId, jobId));
         chunkEntity.setNumberOfItems(chunkItemEntities.size());
         chunkEntity.setDataFileId(dataFileId);
-        chunkEntity.setSequenceAnalysisData(sequenceAnalysisData);
         chunkEntity.setState(chunkState);
         if (chunkState.fatalDiagnosticExists()) {
             chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
@@ -866,7 +923,25 @@ public class PgJobStoreRepository extends RepositoryBase {
         }
     }
 
-    private State updateItemEntityState(ItemEntity itemEntity, StateChange stateChange) {
+    /**
+     * Applies a state change to an item's state. Replaces the entity's State instance
+     * rather than mutating the existing one, which is what marks the converted json
+     * column dirty (see the note on ItemEntity.state).
+     * <p>
+     * The counters on the state change are deltas, not absolute totals: State.updateState
+     * adds them onto whatever is already persisted. The affected phase closes either when
+     * the state change carries an explicit end date, or automatically once its running
+     * total reaches the item's PARTITIONING total. Once a phase is closed, further changes
+     * to it are silently ignored, so callers whose contribution could arrive twice before
+     * the phase closes need their own idempotency check.
+     *
+     * @param itemEntity  item entity whose state to advance
+     * @param stateChange the change to apply
+     * @return the item's new state
+     * @throws IllegalStateException if the change would close a PROCESSING or DELIVERING
+     *                               phase while the item's PARTITIONING phase is still open
+     */
+    public State updateItemEntityState(ItemEntity itemEntity, StateChange stateChange) {
         final State itemState = new State(itemEntity.getState());
         itemState.updateState(stateChange);
         itemEntity.setState(itemState);
@@ -886,8 +961,12 @@ public class PgJobStoreRepository extends RepositoryBase {
         }
     }
 
-    private SequenceAnalysisData getSequenceAnalysisData(KeyGenerator keyGenerator, ChunkItemEntities chunkItemEntities) {
-        return new SequenceAnalysisData(keyGenerator.getKeys(chunkItemEntities.keys));
+    boolean containsLiveHeadOrSectionRecord(ChunkItemEntities chunkItemEntities) {
+        return chunkItemEntities.entities.stream()
+                .map(ItemEntity::getRecordInfo)
+                .anyMatch(recordInfo -> recordInfo instanceof MarcRecordInfo marcRecordInfo
+                        && (marcRecordInfo.isHead() || marcRecordInfo.isSection())
+                        && !marcRecordInfo.isDelete());
     }
 
     private void throwInvalidInputException(String errMsg, JobError.Code jobErrorCode) throws InvalidInputException {
@@ -917,13 +996,11 @@ public class PgJobStoreRepository extends RepositoryBase {
     public static class ChunkItemEntities {
         public final List<ItemEntity> entities;
         public final StateChange chunkStateChange;
-        public final List<String> keys;
 
         public ChunkItemEntities() {
             entities = new ArrayList<>();
             chunkStateChange = new StateChange();
             chunkStateChange.setBeginDate(new Date());
-            keys = new ArrayList<>();
         }
 
         public short size() {
@@ -943,10 +1020,5 @@ public class PgJobStoreRepository extends RepositoryBase {
             }
             return chunkState;
         }
-    }
-
-    private SinkContent.SequenceAnalysisOption getSequenceAnalysisOption(int jobId) {
-        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        return jobEntity.getCachedSink().getSink().getContent().getSequenceAnalysisOption();
     }
 }

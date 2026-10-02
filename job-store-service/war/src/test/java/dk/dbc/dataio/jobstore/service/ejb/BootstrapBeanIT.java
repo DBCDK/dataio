@@ -102,7 +102,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
         bootstrapBean.rerunsRepository = newRerunsRepository();
         bootstrapBean.jobSchedulerBean.jobSchedulerTransactionsBean = mock(JobSchedulerTransactionsBean.class);
-        bootstrapBean.jobSchedulerBean.dependencyTrackingService = new DependencyTrackingService().init();
+        bootstrapBean.jobSchedulerBean.dependencyTrackingService = newDependencyTrackingService();
         bootstrapBean.jobSchedulerBean.metricRegistry = mock(MetricRegistry.class);
         bootstrapBean.jobSchedulerBean.flowStore = mock(FlowStoreServiceConnectorBean.class);
         FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);

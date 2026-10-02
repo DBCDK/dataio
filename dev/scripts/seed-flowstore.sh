@@ -78,8 +78,7 @@ else
             "name": "dev-null-sink",
             "queue": "sinkqueue::sinkqueue",
             "description": "Local dev sink — chunks are acknowledged but not delivered",
-            "sinkType": "DUMMY",
-            "sequenceAnalysisOption": "ID_ONLY"
+            "sinkType": "DUMMY"
         }')
     SINK_ID=$(echo "$sink_response" | jq -r '.id')
     echo "  Sink ID: $SINK_ID"
@@ -130,5 +129,5 @@ echo "Seeding complete."
 echo "  Nashorn flow ID:  $NASHORN_FLOW_ID"
 echo "  GraalJS flow ID:  $GRAALJS_FLOW_ID"
 echo ""
-echo "Use NASHORN_FLOW_ID=$NASHORN_FLOW_ID in step 5a (or re-query with:"
+echo "The Nashorn flow ID is $NASHORN_FLOW_ID (re-query it with:"
 echo "  curl -s http://localhost:8081/dataio/flow-store-service/flows | jq '[.[] | select(.content.name == \"Passthrough\")] | .[0].id')"

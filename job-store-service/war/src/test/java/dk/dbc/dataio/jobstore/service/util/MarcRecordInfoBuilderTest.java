@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.MarcRecordInfoBuilder;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.marc.binding.ControlField;
 import dk.dbc.marc.binding.DataField;
@@ -12,8 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,7 +23,6 @@ public class MarcRecordInfoBuilderTest {
     private final DataField f004 = get004("e", "c");    // produces non-delete, standalone
     private final DataField f014 = get014(parent);
     private final ControlField c001 = new ControlField().setTag("001").setData(id);
-    private final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
     @Test
     public void parse_marcRecordArgIsNull_returnsEmpty() {
@@ -43,7 +39,6 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getId()", recordInfo.getId(), is(id));
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
@@ -57,7 +52,6 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
@@ -71,7 +65,6 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.HEAD));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
@@ -86,7 +79,6 @@ public class MarcRecordInfoBuilderTest {
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
         assertThat("getParentRelation()", recordInfo.getParentRelation(), is(parent));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(parent, id)));
     }
 
     @Test
@@ -101,7 +93,6 @@ public class MarcRecordInfoBuilderTest {
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
         assertThat("getParentRelation()", recordInfo.getParentRelation(), is(parent));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(parent, id)));
     }
 
     @Test
@@ -112,7 +103,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
         MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
+        assertThat("getId()", recordInfo.getId(), is(id));
     }
 
     @Test
@@ -123,7 +114,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
         MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("isDelete()", recordInfo.isDelete(), is(true));
-        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
+        assertThat("getId()", recordInfo.getId(), is(id));
     }
 
     @Test
@@ -177,9 +168,5 @@ public class MarcRecordInfoBuilderTest {
                         new SubField()
                                 .setCode('a')
                                 .setData(a));
-    }
-
-    public static Set<String> newSet(String... strings) {
-        return Arrays.stream(strings).collect(Collectors.toSet());
     }
 }

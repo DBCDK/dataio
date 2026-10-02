@@ -15,6 +15,7 @@ public class BatchExchangeSinkApp extends MessageConsumerApp {
     public BatchExchangeSinkApp() {
         new ScheduledBatchFinalizer(serviceHub, ENTITY_MANAGER);
         JPAHelper.migrate(SinkConfig.BATCH_EXCHANGE_DB_URL, c -> c.locations("classpath:dk/dbc/batchexchange/db/migration"), c -> c.baselineOnMigrate(true));
+        BatchExchangeSchema.migrate(SinkConfig.BATCH_EXCHANGE_DB_URL);
     }
 
     public static void main(String[] args) {

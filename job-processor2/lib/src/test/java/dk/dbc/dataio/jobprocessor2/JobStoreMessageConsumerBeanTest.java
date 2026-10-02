@@ -15,7 +15,6 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobprocessor2.jms.JobStoreMessageConsumer;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
-import dk.dbc.dataio.jse.artemis.common.JobProcessorException;
 import dk.dbc.dataio.jse.artemis.common.Metric;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.registry.PrometheusMetricRegistry;
@@ -58,21 +57,21 @@ public class JobStoreMessageConsumerBeanTest {
     }
 
     @Test
-    public void handleConsumedMessage_messageArgPayloadIsInvalidNewJob_throws() throws JobProcessorException {
+    public void handleConsumedMessage_messageArgPayloadIsInvalidNewJob_throws() {
         ConsumedMessage consumedMessage = new ConsumedMessage("id", headers, "{'invalid': 'instance'}");
         JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
         assertThrows(InvalidMessageException.class, () -> jobStoreMessageConsumer.handleConsumedMessage(consumedMessage));
     }
 
     @Test
-    public void handleConsumedMessage_messagePayloadCanNotBeUnmarshalledToJson_throws() throws JobProcessorException {
+    public void handleConsumedMessage_messagePayloadCanNotBeUnmarshalledToJson_throws() {
         ConsumedMessage message = new ConsumedMessage("id", headers, "invalid");
         JobStoreMessageConsumer jobStoreMessageConsumer = new JobStoreMessageConsumer(SERVICE_HUB);
         assertThrows(InvalidMessageException.class, () -> jobStoreMessageConsumer.handleConsumedMessage(message));
     }
 
     @Test
-    public void handleConsumedMessage_messageChunkIsOfIncorrectType_throws() throws JobProcessorException, JSONBException {
+    public void handleConsumedMessage_messageChunkIsOfIncorrectType_throws() throws JSONBException {
         ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
         // The Chunk-type 'processed' is not allowed in the JobProcessor, only 'partitioned' is allowed.
         Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(Collections.singletonList(item)).build();

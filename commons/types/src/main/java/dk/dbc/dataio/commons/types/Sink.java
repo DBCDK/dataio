@@ -11,8 +11,6 @@ import java.io.Serializable;
  */
 public class Sink implements Serializable {
     private static final long serialVersionUID = -1110221413046923805L;
-    public static final Sink DIFF = createDiffSink();
-
     private final int id;
     private final long version;
     private final SinkContent content;
@@ -65,10 +63,5 @@ public class Sink implements Serializable {
         result = 31 * result + (int) (version ^ (version >>> 32));
         result = 31 * result + content.hashCode();
         return result;
-    }
-
-    private static Sink createDiffSink() {
-        return new Sink(1, 1, new SinkContent("DiffSink", "sink::diff",
-                "Internal sink used for acceptance test diff functionality", null, null,SinkContent.SequenceAnalysisOption.ID_ONLY));
     }
 }

@@ -26,15 +26,36 @@ mvn package -pl marc-client -P generate-source
 
 ## Architecture
 
-All sinks follow the same structural pattern built on the `jse-artemis` framework:
+All sinks share the same structure, built on the `jse-artemis` framework:
 
 1. **`*SinkApp`** — entry point, extends `MessageConsumerApp`. Creates a `ServiceHub` and a `Supplier<MessageConsumer>`, then calls `go(serviceHub, messageConsumer)`. Database-backed sinks also call `JPAHelper.migrate()` and `JPAHelper.makeEntityManagerFactory()` here.
 
-2. **`*MessageConsumer`** — extends `MessageConsumerAdapter`. Implements `handleConsumedMessage(ConsumedMessage)`, which is the main processing loop. The standard flow is:
-   - `unmarshallPayload(consumedMessage)` → `Chunk` of type PROCESSED
-   - Iterate over `ChunkItem`s; handle SUCCESS / FAILURE / IGNORE status
-   - Build a new `Chunk` of type DELIVERED
-   - `sendResultToJobStore(deliveredChunk)`
+2. **`*MessageConsumer`** — the consumer, extending `SinkMessageConsumerAdapter` (epic DI-2946, see `docs/chunk-scheduling-redesign.md`). job-store dispatches one JMS message per item with `payload = ITEM_PAYLOAD_TYPE` and a single `ChunkItem` body, and the sink implements one method:
+
+   ```java
+   protected ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item)
+   ```
+
+   returning `ItemDeliveryResult.of(status, outcomeItem)`. `handleConsumedMessage` is `final` in the base class. The framework — not the sink — owns the header reads, the delivery watermark check, reporting the result to job-store, the `DBCTrackedLogContext` tracking-id scope, and the `dataio_item_delivery_count` metric. In particular, never read `JMSHeader.recordKey` or re-derive a watermark key from record content.
+
+   Four verdicts, three of them the sink's to return:
+
+   | Verdict | Meaning | DELIVERING counter | Returned by |
+   |---|---|---|---|
+   | `DELIVERED` | sent to the target | succeeded | the sink |
+   | `IGNORED` | not sent, nothing to send | ignored | the sink |
+   | `FAILED` | attempted, rejected in a way retrying will not fix | failed | the sink |
+   | `SUPERSEDED` | a newer version of the record was already delivered | ignored | the framework, and `batch-exchange` |
+
+   Rules that are easy to get wrong:
+   - **Throwing means "retry"** — it rolls the JMS session back and the item is redelivered until the broker gives up. A terminal failure must be returned as `FAILED`, not thrown.
+   - **A processing outcome passed through without being sent is `IGNORED`, not `DELIVERED` with an `IGNORE` item.** `DELIVERED` is the only verdict that advances the watermark, so using it for an unsent item both overstates the succeeded count and makes a false claim about what is at the target.
+   - **Commit your own writes before returning.** The framework reports the result after `deliverItem` returns, so a reported item is an item whose writes are durable — which is what lets an aggregating sink's job-end work run against complete data.
+   - Sinks that aggregate a whole job before delivering anything (`periodic-jobs`, `marcconv`) override `usesDeliveryWatermark()` to `false`. They still report every item individually: the phase counters and the per-job gate are driven by those reports.
+   - A sink whose target answers only *after* `deliverItem` returns overrides `defersDeliveryResult()` to `true` and returns `null` for an item whose outcome is still outstanding. The framework then reports nothing and lets the session commit, and the sink calls `addItemDelivered` itself once the outcome arrives. `batch-exchange` is the only one: it stages an item's records for a consumer system and `BatchFinalizer` reports them. Returning `null` without that override is an `ItemDeliveryException`. Reporting `DELIVERED` at staging time instead is wrong twice over — `addItemDelivered` records an outcome once per item, and `DELIVERED` advances the watermark for a delivery that may still fail.
+   - The job termination item arrives as an ordinary item message carrying `ChunkItem.Type.JOB_END`; sinks needing job-end work branch on that.
+
+   `dlq-errorhandler` and `job-processor2` are not sinks in this sense and stay on the chunk-level `MessageConsumerAdapter` by design: they implement `handleConsumedMessage(ConsumedMessage)` themselves and report whole `Chunk`s via `sendResultToJobStore`.
 
 3. **`SinkConfig`** — enum implementing `EnvConfig`. Each constant maps to an environment variable. Values are read at startup; default values can be provided in the constructor.
 
@@ -44,7 +65,12 @@ Configuration that varies per job (e.g. endpoint, credentials) comes from the **
 
 Files named `*IT.java` are integration tests run by `maven-failsafe-plugin` during `verify`. They use **Testcontainers** (PostgreSQL) via `PostgresContainerJPAUtils`. Unit tests (`*Test.java`) use Mockito and run with `maven-surefire-plugin` during `test`.
 
-The `testutil` module provides `ObjectFactory.createConsumedMessage(Chunk)` — the standard way to build a `ConsumedMessage` in tests.
+There is no shared helper for building a per-item `ConsumedMessage`: build it from a header map (`JMSHeader.payload` = `ITEM_PAYLOAD_TYPE`, plus `jobId`, `chunkId`, `itemId`, `sinkId` and, unless the sink opted out, `recordKey`) and a `JSONBContext`-marshalled `ChunkItem` body. `DummyMessageConsumerTest` and `PeriodicJobsMessageConsumerTest` are the models. Construct the consumer with `new ServiceHub.Builder().withJobStoreServiceConnector(mock).test()` — `test()` rather than `build()`, so no HTTP service is started.
+
+Two things worth knowing before writing such a test:
+
+- **A test that drives `handleConsumedMessage` and then asserts the reported result is re-testing the framework.** Header reading, the watermark comparison and result reporting all live in `SinkMessageConsumerAdapter` and are covered by `SinkMessageConsumerAdapterTest`. A sink's own surface is `deliverItem` plus its `usesDeliveryWatermark()` choice — call `deliverItem` directly. The one exception is asserting the watermark opt-out, which is observable only as the lookup being (or not being) made.
+- **A unit test that constructs a consumer needs `APP_NAME`** — `UserAgent.forInternalRequests()` reads it while the consumer builds its connectors, and without it the test fails with "APP_NAME environment variable has not been set". Several modules set it only for failsafe; add the same `<environmentVariables>` block to `maven-surefire-plugin` (see `dpf` and `periodic-jobs`).
 
 ## Notable modules
 

@@ -52,6 +52,7 @@
         <tickle-repo-harvester.context>/dataio/harvester/tickle-repo</tickle-repo-harvester.context>
 
         <hk2.version>3.0.3</hk2.version>
+        <netty.version>4.1.138.Final</netty.version>
     </properties>
 
     <dependencies>
@@ -490,6 +491,11 @@
             </dependency>
             <dependency>
                 <groupId>dk.dbc</groupId>
+                <artifactId>dataio-cli-diff</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dk.dbc</groupId>
                 <artifactId>dataio-cli-job-replicator</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -588,11 +594,6 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>dataio-partitioner</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dk.dbc</groupId>
-                <artifactId>dataio-sink-diff</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -813,6 +814,17 @@
                 <artifactId>java-diff-utils</artifactId>
                 <version>4.12</version>
             </dependency>
+            <!-- Pins every io.netty artifact to one version. netty arrives only transitively,
+                 at 4.1.94.Final under org.apache.qpid:qpid-jms-client and at 4.1.119.Final under
+                 org.apache.solr:solr-solrj by way of zookeeper. Both are below the fix for
+                 CVE-2026-75595 in netty-handler, which landed in 4.1.137.Final. -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>jakarta.annotation</groupId>
                 <artifactId>jakarta.annotation-api</artifactId>
@@ -936,11 +948,6 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-database-postgresql</artifactId>
                 <version>${flyway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.freemarker</groupId>
-                <artifactId>freemarker</artifactId>
-                <version>2.3.32</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish</groupId>
@@ -1242,6 +1249,7 @@
                            Property value seems to magically default to false -->
                     <!--suppress UnresolvedMavenProperty, MavenModelInspection -->
                     <skipTests>${skip.surefire.tests}</skipTests>
+                    <argLine>-Djava.io.tmpdir=${project.build.directory} -Djna.tmpdir=${project.build.directory}</argLine>
                 </configuration>
                 <dependencies>
                     <dependency>

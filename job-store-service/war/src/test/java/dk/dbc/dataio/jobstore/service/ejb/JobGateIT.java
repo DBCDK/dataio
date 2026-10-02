@@ -1,0 +1,909 @@
+package dk.dbc.dataio.jobstore.service.ejb;
+
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Priority;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.jobstore.distributed.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.distributed.DependencyTracking;
+import dk.dbc.dataio.jobstore.distributed.TrackingKey;
+import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DependencyTrackingService;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.junit.Assert;
+
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
+import jakarta.persistence.EntityManager;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
+
+/**
+ * The per-job gate on termination chunks, see docs/chunk-scheduling-redesign.md,
+ * "Barrier Chunks - Per-Job Gate".
+ * <p>
+ * The assertions read the gate columns straight from PostgreSQL on their own connections, so they
+ * see committed state and nothing else. What a closed gate withholds from dispatch is the dispatch
+ * filter's contract and is asserted with it.
+ * <p>
+ * The counter's two concurrency hazards are both here, since they are one property from opposite
+ * sides: an acknowledgement must not be lost, and an acknowledgement must not be counted twice. See
+ * "Same-item concurrent redelivery (job-store-service)" for where the duplicate comes from.
+ */
+public class JobGateIT extends AbstractJobStoreIT {
+    private static final int SINK_ID = 4711;
+    private static final long SUBMITTER = 820010;
+    private static final long OTHER_SUBMITTER = 820011;
+
+    /**
+     * data_chunks_expected is the termination chunk's own chunk id, and the gate opens on the
+     * delivery of the last data chunk.
+     */
+    @org.junit.Test
+    public void jobWithTerminationChunk() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 3);
+        markJobAsPartitioned(job);
+
+        TrackingKey terminationChunk = new TrackingKey(job.getId(), 3);
+        assertThat("data_chunks_expected", dataChunksExpected(job.getId()), is(3));
+        assertThat("data_chunks_expected equals the termination chunk id",
+                dataChunksExpected(job.getId()), is(terminationChunk.getChunkId()));
+        assertThat("is_termination", isTermination(terminationChunk), is(true));
+        assertThat("gate closed while data chunks are outstanding", gateOpen(terminationChunk), is(false));
+        assertThat("termination_barrier_lifted", terminationBarrierLifted(job.getId()), is(false));
+
+        deliverDataChunk(job.getId(), 0);
+        deliverDataChunk(job.getId(), 1);
+        assertThat("gate still closed", gateOpen(terminationChunk), is(false));
+
+        deliverDataChunk(job.getId(), 2);
+        assertThat("gate open after the last data chunk", gateOpen(terminationChunk), is(true));
+        assertThat("data_chunks_delivered counts data chunks only",
+                dataChunksDelivered(job.getId()), is(3));
+
+        // The termination chunk does not count itself.
+        deliverTerminationChunk(job.getId(), 3);
+        assertThat("termination chunk was not counted", dataChunksDelivered(job.getId()), is(3));
+        assertThat("barrier lifted on delivery", terminationBarrierLifted(job.getId()), is(true));
+    }
+
+    /**
+     * A non-barrier sink type gets no termination chunk. Deliveries are still counted, but the job
+     * never appears as a blocker to anything.
+     */
+    @org.junit.Test
+    public void jobWithoutTerminationChunk() throws Exception {
+        JobEntity job = newPersistedJob(SUBMITTER, 2, SinkContent.SinkType.ES);
+        markJobAsPartitioned(job);
+
+        assertThat("no termination row", isTermination(new TrackingKey(job.getId(), 2)), is(nullValue()));
+        assertThat("data_chunks_expected untouched", dataChunksExpected(job.getId()), is(0));
+        assertThat("termination_barrier_lifted stays null so the job never blocks",
+                terminationBarrierLifted(job.getId()), is(nullValue()));
+
+        deliverDataChunk(job.getId(), 0);
+        deliverDataChunk(job.getId(), 1);
+        assertThat("deliveries are still counted", dataChunksDelivered(job.getId()), is(2));
+    }
+
+    /**
+     * A job with zero data chunks, the shape addAndScheduleEmptyJob produces. No data chunk will
+     * ever be delivered to trigger the count, so the gate has to be open from the insert.
+     */
+    @org.junit.Test
+    public void emptyJobGateIsOpenAtInsert() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 0);
+        markJobAsPartitioned(job);
+
+        TrackingKey terminationChunk = new TrackingKey(job.getId(), 0);
+        assertThat("termination chunk id", isTermination(terminationChunk), is(true));
+        assertThat("data_chunks_expected", dataChunksExpected(job.getId()), is(0));
+        assertThat("gate open at insert", gateOpen(terminationChunk), is(true));
+    }
+
+    /**
+     * All data chunks delivered before partitioning ended. There is no further delivery to
+     * evaluate on, so the insert has to open the gate. Driven at bean level rather than by racing
+     * the partitioning loop.
+     */
+    @org.junit.Test
+    public void allDataChunksDeliveredBeforePartitioningEnds() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 2);
+
+        deliverDataChunk(job.getId(), 0);
+        deliverDataChunk(job.getId(), 1);
+        assertThat("counted before the termination chunk existed", dataChunksDelivered(job.getId()), is(2));
+
+        markJobAsPartitioned(job);
+
+        assertThat("gate open at insert", gateOpen(new TrackingKey(job.getId(), 2)), is(true));
+    }
+
+    /**
+     * An earlier job on the same submitter and sink holds the later job's gate closed, whatever
+     * the earlier job's own gate state.
+     */
+    @org.junit.Test
+    public void crossJobBarrierHoldsLaterJobClosed() throws Exception {
+        JobEntity jobA = newPersistedTerminationJob(SUBMITTER, 1);
+        JobEntity jobB = newPersistedTerminationJob(SUBMITTER, 1);
+        markJobAsPartitioned(jobA);
+        markJobAsPartitioned(jobB);
+
+        // A's own gate opens, but its barrier is not lifted until its termination chunk is
+        // delivered, so B stays closed even with its own counter complete.
+        deliverDataChunk(jobA.getId(), 0);
+        deliverDataChunk(jobB.getId(), 0);
+
+        assertThat("A's own gate", gateOpen(new TrackingKey(jobA.getId(), 1)), is(true));
+        assertThat("B held by A's barrier", gateOpen(new TrackingKey(jobB.getId(), 1)), is(false));
+
+        // A different submitter on the same sink is not part of the barrier scope.
+        JobEntity jobC = newPersistedTerminationJob(OTHER_SUBMITTER, 1);
+        markJobAsPartitioned(jobC);
+        deliverDataChunk(jobC.getId(), 0);
+        assertThat("other submitter is unaffected", gateOpen(new TrackingKey(jobC.getId(), 1)), is(true));
+    }
+
+    /**
+     * Delivering a termination chunk re-evaluates the jobs queued behind it, and opens only the
+     * next eligible one because that job's own barrier is now in the way of the one after it.
+     */
+    @org.junit.Test
+    public void reTriggerOpensTheNextJobOnly() throws Exception {
+        JobEntity jobA = newPersistedTerminationJob(SUBMITTER, 1);
+        JobEntity jobB = newPersistedTerminationJob(SUBMITTER, 1);
+        JobEntity jobC = newPersistedTerminationJob(SUBMITTER, 1);
+        markJobAsPartitioned(jobA);
+        markJobAsPartitioned(jobB);
+        markJobAsPartitioned(jobC);
+        deliverDataChunk(jobA.getId(), 0);
+        deliverDataChunk(jobB.getId(), 0);
+        deliverDataChunk(jobC.getId(), 0);
+
+        assertThat("B closed", gateOpen(new TrackingKey(jobB.getId(), 1)), is(false));
+        assertThat("C closed", gateOpen(new TrackingKey(jobC.getId(), 1)), is(false));
+
+        deliverTerminationChunk(jobA.getId(), 1);
+        assertThat("B opened by the re-trigger", gateOpen(new TrackingKey(jobB.getId(), 1)), is(true));
+        assertThat("C still behind B", gateOpen(new TrackingKey(jobC.getId(), 1)), is(false));
+
+        deliverTerminationChunk(jobB.getId(), 1);
+        assertThat("C opened in turn", gateOpen(new TrackingKey(jobC.getId(), 1)), is(true));
+    }
+
+    /**
+     * The gate is reached through chunkDeliveringDone, not only by calling JobGateBean directly.
+     */
+    @org.junit.Test
+    public void chunkDeliveringDoneAdvancesTheGate() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 1);
+        markJobAsPartitioned(job);
+
+        DependencyTrackingService trackingService = newDependencyTrackingService();
+        scheduleDataChunkForDelivery(job.getId(), 0);
+
+        JobSchedulerBean jobSchedulerBean = new JobSchedulerBean(entityManager,
+                mock(JobSchedulerTransactionsBean.class), null, null, trackingService, newJobGateBean(), newDeliveryDispatchRepository());
+
+        persistenceContext.run(() -> JobsBeanTest.notAborted(job.getId(), jb ->
+                jobSchedulerBean.chunkDeliveringDone(new Chunk(job.getId(), 0, Chunk.Type.DELIVERED))));
+
+        assertThat("data chunk counted", dataChunksDelivered(job.getId()), is(1));
+        assertThat("gate opened", gateOpen(new TrackingKey(job.getId(), 1)), is(true));
+    }
+
+    /**
+     * A job's last data chunk and its own termination chunk, acknowledged concurrently.
+     * <p>
+     * This is the interleaving that deadlocks if any gate site takes the barrier scope's advisory
+     * lock before the job row: the data chunk's transaction holds the job row from its increment
+     * and then wants the advisory lock, so a termination chunk's transaction holding the advisory
+     * lock and waiting for the same job row closes the cycle. PostgreSQL breaks it by aborting one
+     * of the two, which surfaces here as an exception from either side.
+     * <p>
+     * It is reachable in production because deliveries within a job are not ordered:
+     * optimizeDependencies prunes the termination chunk's waitingOn down to the chunks that
+     * transitively cover the rest, so it can be dispatched while an earlier data chunk of its own
+     * job is still in flight.
+     */
+    @org.junit.Test
+    public void concurrentTerminationAndLastDataChunk_doesNotDeadlock() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 2);
+        markJobAsPartitioned(job);
+        deliverDataChunk(job.getId(), 0);
+
+        EntityManager dataChunkEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager terminationEm = entityManager.getEntityManagerFactory().createEntityManager();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            // Step one of the data-chunk branch, run by hand so the job row lock it takes is held
+            // across the start of the termination delivery below. The rest of the branch follows
+            // after that delivery is provably blocked.
+            JobGateRepository dataChunkGate = new JobGateRepository().withEntityManager(dataChunkEm);
+            dataChunkEm.getTransaction().begin();
+            dataChunkGate.incrementDataChunksDelivered(job.getId());
+
+            JobGateBean terminationGate = newJobGateBean(terminationEm);
+            Future<?> terminationDelivery = executor.submit(() -> runInTransaction(terminationEm, () -> {
+                terminationGate.advanceGateState(terminationEntry(job.getId(), 2));
+                return null;
+            }));
+
+            // It has to block on the job row held above, and must not have taken the advisory lock
+            // on its way there.
+            awaitRowLockWaiters(1);
+            assertThat("termination delivery still blocked", terminationDelivery.isDone(), is(false));
+
+            // Step two, the advisory lock that countDataChunk takes after its increment. It is
+            // granted at once, because the termination delivery is blocked on the job row above
+            // and has therefore not reached the lock. That is the whole claim of this test: had
+            // either site taken the barrier scope before the job row, the two would hold what the
+            // other wants, PostgreSQL's detector would abort one of them inside deadlock_timeout,
+            // and the abort would surface as a failure here or from the future below.
+            dataChunkGate.advisoryLock(SINK_ID, (int) SUBMITTER);
+            dataChunkEm.getTransaction().commit();
+
+            terminationDelivery.get(30, TimeUnit.SECONDS);
+        } finally {
+            // Roll back first, so a task still blocked on the job row can run to completion, and
+            // only then wait for it. Closing an entity manager under a running task raises a
+            // secondary failure that buries the one the test was reporting.
+            if (dataChunkEm.getTransaction().isActive()) {
+                dataChunkEm.getTransaction().rollback();
+            }
+            executor.shutdownNow();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+            dataChunkEm.close();
+            terminationEm.close();
+        }
+
+        assertThat("both data chunks counted", dataChunksDelivered(job.getId()), is(2));
+        assertThat("barrier lifted", terminationBarrierLifted(job.getId()), is(true));
+    }
+
+    /**
+     * The own-job race: the job's last data chunk is delivered while partitioning is still ending,
+     * so its increment is in flight when the termination chunk is inserted. The insert decides
+     * under the job row lock, so it cannot read a short count and leave the gate closed with no
+     * further delivery to open it.
+     */
+    @org.junit.Test
+    public void terminationChunkInsertAgainstAnInFlightDelivery_gateEndsUpOpen() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 1);
+
+        EntityManager deliveryEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager partitioningEm = entityManager.getEntityManagerFactory().createEntityManager();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            JobGateBean deliveryGate = newJobGateBean(deliveryEm);
+            deliveryEm.getTransaction().begin();
+            deliveryGate.advanceGateState(dataEntry(job.getId(), 0));
+
+            Future<?> partitioningDone = executor.submit(() -> {
+                markJobAsPartitioned(job, partitioningEm);
+                return null;
+            });
+
+            awaitRowLockWaiters(1);
+            assertThat("termination chunk insert still blocked", partitioningDone.isDone(), is(false));
+
+            deliveryEm.getTransaction().commit();
+            partitioningDone.get(30, TimeUnit.SECONDS);
+        } finally {
+            if (deliveryEm.getTransaction().isActive()) {
+                deliveryEm.getTransaction().rollback();
+            }
+            executor.shutdownNow();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+            deliveryEm.close();
+            partitioningEm.close();
+        }
+
+        assertThat("the delivery was counted", dataChunksDelivered(job.getId()), is(1));
+        assertThat("gate open at insert despite the concurrent delivery",
+                gateOpen(new TrackingKey(job.getId(), 1)), is(true));
+    }
+
+    /**
+     * The cross-job race: an earlier job's termination delivery lifts its barrier and re-evaluates
+     * the jobs behind it, while a later job's termination chunk is being inserted and reads whether
+     * that barrier still holds.
+     * <p>
+     * Left unserialised the two can both decline. The insert reads the earlier barrier as unlifted
+     * because the delivery has not committed, and the delivery's scan misses the later job because
+     * its row has not committed either, so the gate is left closed with nothing to open it. Both
+     * sites therefore take the barrier scope's advisory lock, which is what this test holds by hand
+     * to prove they wait for it. Whichever of the two then goes first, the other sees its committed
+     * work, so the later job's gate ends open either way.
+     */
+    @org.junit.Test
+    public void terminationInsertAgainstTheReTriggerOfAnEarlierJob_gateEndsUpOpen() throws Exception {
+        JobEntity earlier = newPersistedTerminationJob(SUBMITTER, 1);
+        markJobAsPartitioned(earlier);
+        deliverDataChunk(earlier.getId(), 0);
+
+        // The later job's own counter is complete before partitioning ends, so its gate is decided
+        // by the insert and turns entirely on the cross-job barrier.
+        JobEntity later = newPersistedTerminationJob(SUBMITTER, 1);
+        deliverDataChunk(later.getId(), 0);
+        assertThat("earlier job still blocks", terminationBarrierLifted(earlier.getId()), is(false));
+
+        EntityManager lockEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager reTriggerEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager partitioningEm = entityManager.getEntityManagerFactory().createEntityManager();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            // Held for the whole race, so neither site can decide until it is released.
+            lockEm.getTransaction().begin();
+            new JobGateRepository().withEntityManager(lockEm).advisoryLock(SINK_ID, (int) SUBMITTER);
+
+            Future<?> terminationInsert = executor.submit(() -> {
+                markJobAsPartitioned(later, partitioningEm);
+                return null;
+            });
+            JobGateBean reTriggerGate = newJobGateBean(reTriggerEm);
+            Future<?> reTrigger = executor.submit(() -> runInTransaction(reTriggerEm, () -> {
+                reTriggerGate.advanceGateState(terminationEntry(earlier.getId(), 1));
+                return null;
+            }));
+
+            awaitAdvisoryLockWaiters(2);
+            assertThat("the insert is still waiting", terminationInsert.isDone(), is(false));
+            assertThat("the re-trigger is still waiting", reTrigger.isDone(), is(false));
+
+            lockEm.getTransaction().commit();
+            terminationInsert.get(30, TimeUnit.SECONDS);
+            reTrigger.get(30, TimeUnit.SECONDS);
+        } finally {
+            if (lockEm.getTransaction().isActive()) {
+                lockEm.getTransaction().rollback();
+            }
+            executor.shutdownNow();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+            lockEm.close();
+            reTriggerEm.close();
+            partitioningEm.close();
+        }
+
+        assertThat("earlier barrier lifted", terminationBarrierLifted(earlier.getId()), is(true));
+        assertThat("later job's gate ends open", gateOpen(new TrackingKey(later.getId(), 1)), is(true));
+    }
+
+    /**
+     * Two writers race for one data chunk's gate: the insert that would shut it, and the re-trigger
+     * that would open it because the job ahead has just finished. The advisory lock is what makes
+     * the outcome safe whichever wins, and this is the test for that.
+     * <p>
+     * Unlocked they can miss each other, in one direction only. The insert reads the barrier and
+     * sees it standing. The re-trigger then commits its lift and scans for closed rows to open,
+     * finding none, because the insert has not written its row yet. The insert then writes that row
+     * closed. Nothing will ever look at it again, so the gate is not opened late, it is never opened
+     * at all.
+     * <p>
+     * The test holds the lock itself and starts both writers behind it, so neither can decide until
+     * the lock is released. Which one then acquires it first is left to PostgreSQL, because the gate
+     * has to end up open either way.
+     * <p>
+     * The two outcomes differ only in what they leave behind. Insert first: it sees a barrier that
+     * is still standing, writes the row closed, and the re-trigger's scan finds and opens it.
+     * Re-trigger first: the insert re-reads a barrier that is now lifted and writes the row open.
+     */
+    @org.junit.Test
+    public void dataChunkCloseAgainstTheReTriggerOfAnEarlierJob_gateEndsUpOpen() throws Exception {
+        JobEntity earlier = newPersistedTerminationJob(SUBMITTER, 1);
+        markJobAsPartitioned(earlier);
+        deliverDataChunk(earlier.getId(), 0);
+        assertThat("earlier job still blocks", terminationBarrierLifted(earlier.getId()), is(false));
+
+        JobEntity later = newPersistedTerminationJob(SUBMITTER, 1);
+        TrackingKey laterDataChunk = new TrackingKey(later.getId(), 0);
+        // dependencytracking (jobid, chunkid) is a foreign key into chunk, and the partitioning loop
+        // has already committed the chunk row by the time the gate is written.
+        newPersistedChunkEntity(new ChunkEntity.Key(laterDataChunk.getChunkId(), laterDataChunk.getJobId()));
+
+        EntityManager lockEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager closeEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager reTriggerEm = entityManager.getEntityManagerFactory().createEntityManager();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            // Held for the whole race, so neither site can decide until it is released.
+            lockEm.getTransaction().begin();
+            new JobGateRepository().withEntityManager(lockEm).advisoryLock(SINK_ID, (int) SUBMITTER);
+
+            JobGateBean closeGate = newJobGateBean(closeEm);
+            Future<?> close = executor.submit(() -> runInTransaction(closeEm, () -> {
+                closeGate.insertDataChunkRow(laterDataChunk, SINK_ID, (int) SUBMITTER,
+                        ChunkSchedulingStatus.READY_FOR_PROCESSING, Priority.NORMAL.getValue(), true);
+                return null;
+            }));
+            JobGateBean reTriggerGate = newJobGateBean(reTriggerEm);
+            Future<?> reTrigger = executor.submit(() -> runInTransaction(reTriggerEm, () -> {
+                reTriggerGate.advanceGateState(terminationEntry(earlier.getId(), 1));
+                return null;
+            }));
+
+            awaitAdvisoryLockWaiters(2);
+            assertThat("the close is still waiting", close.isDone(), is(false));
+            assertThat("the re-trigger is still waiting", reTrigger.isDone(), is(false));
+
+            lockEm.getTransaction().commit();
+            close.get(30, TimeUnit.SECONDS);
+            reTrigger.get(30, TimeUnit.SECONDS);
+        } finally {
+            if (lockEm.getTransaction().isActive()) {
+                lockEm.getTransaction().rollback();
+            }
+            executor.shutdownNow();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+            lockEm.close();
+            closeEm.close();
+            reTriggerEm.close();
+        }
+
+        assertThat("earlier barrier lifted", terminationBarrierLifted(earlier.getId()), is(true));
+        assertThat("the later job's data chunk is not left closed, whichever site won the lock",
+                gateOpen(laterDataChunk), is(true));
+    }
+
+    /**
+     * The job's last two data chunks, in the interleaving that decides whether an increment can be
+     * lost: the second is issued while the first is still uncommitted.
+     * <p>
+     * Read-then-write would lose one here. The second delivery would read the counter before the
+     * first commits, block on the write, and then store that stale value plus one, leaving the
+     * counter one short of data_chunks_expected with no chunk left to deliver and the gate closed
+     * for good. One atomic statement instead blocks and re-evaluates against the committed row when
+     * it unblocks, so the counter lands on exactly the total.
+     * <p>
+     * The first delivery is driven by hand and its transaction held open, rather than starting two
+     * threads and hoping they overlap. Releasing two threads together makes the interleaving likely,
+     * not certain: the first can increment, return and commit before the second is scheduled at
+     * all, and against a committed increment nothing can be lost however it is implemented. Holding
+     * the first open and asserting the second is queued behind it is what makes every run test the
+     * property.
+     */
+    @org.junit.Test
+    public void concurrentLastTwoDataChunks_counterLandsExactlyOnExpected() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 2);
+        markJobAsPartitioned(job);
+
+        EntityManager firstEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager secondEm = entityManager.getEntityManagerFactory().createEntityManager();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            // Straight to the repository rather than through JobGateBean, because the bean would go
+            // on to evaluate the gate from inside this transaction, which is a different test.
+            JobGateRepository firstDelivery = new JobGateRepository().withEntityManager(firstEm);
+            firstEm.getTransaction().begin();
+            firstDelivery.incrementDataChunksDelivered(job.getId());
+
+            JobGateBean secondDelivery = newJobGateBean(secondEm);
+            Future<?> second = executor.submit(() -> runInTransaction(secondEm, () -> {
+                secondDelivery.advanceGateState(dataEntry(job.getId(), 1));
+                return null;
+            }));
+
+            awaitRowLockWaiters(1);
+            assertThat("second delivery queued behind the first", second.isDone(), is(false));
+
+            firstEm.getTransaction().commit();
+            second.get(30, TimeUnit.SECONDS);
+        } finally {
+            if (firstEm.getTransaction().isActive()) {
+                firstEm.getTransaction().rollback();
+            }
+            executor.shutdownNow();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+            firstEm.close();
+            secondEm.close();
+        }
+
+        assertThat("no lost update", dataChunksDelivered(job.getId()), is(2));
+        assertThat("gate opened by the delivery that unblocked", gateOpen(new TrackingKey(job.getId(), 2)), is(true));
+    }
+
+    /**
+     * The counter's other concurrency hazard, and the opposite one to the test above. Two
+     * acknowledgements of the *same* chunk must add 1 between them, where two acknowledgements of
+     * two different chunks must add 2.
+     * <p>
+     * Counted twice, data_chunks_delivered still lands on data_chunks_expected exactly, only while a
+     * data chunk is still in flight. So the gate opens, the termination chunk is dispatched ahead of
+     * the data it summarises, and the job reads as completed. The failure is silent, which is what
+     * makes it worse than the stall a lost update causes.
+     * <p>
+     * These four tests drive chunkDeliveringDone rather than advanceGateState, because the removal
+     * that makes the count once-only and the count itself are on opposite sides of that boundary.
+     */
+    @org.junit.Test
+    public void repeatedAcknowledgementOfOneChunkCountsOnce() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 2);
+        markJobAsPartitioned(job);
+        scheduleDataChunkForDelivery(job.getId(), 0);
+
+        acknowledgeDelivery(job.getId(), 0);
+        acknowledgeDelivery(job.getId(), 0);
+
+        assertThat("counted once", dataChunksDelivered(job.getId()), is(1));
+        assertThat("gate closed while chunk 1 is outstanding",
+                gateOpen(new TrackingKey(job.getId(), 2)), is(false));
+    }
+
+    /**
+     * The same property under two genuinely concurrent calls, which is the case the delete's
+     * once-only token is for. A repeat arriving after the first call committed is turned away by the
+     * row already being gone, but two callers overlapping on one uncommitted row are not.
+     * <p>
+     * The interleaving is arranged rather than hoped for, for the reason
+     * {@link #concurrentLastTwoDataChunks_counterLandsExactlyOnExpected()} gives. The first acknowledgement is driven by hand and its transaction held open, and the
+     * second is asserted to be queued behind it on the row lock before the first commits, so every
+     * run tests the property rather than most runs. A rendezvous that released both callers together
+     * would usually produce the overlap and is not the same thing as guaranteeing it.
+     */
+    @org.junit.Test
+    public void concurrentAcknowledgementOfOneChunkCountsOnce() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 2);
+        markJobAsPartitioned(job);
+        scheduleDataChunkForDelivery(job.getId(), 0);
+
+        TrackingKey dataChunk = new TrackingKey(job.getId(), 0);
+        EntityManager firstEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager secondEm = entityManager.getEntityManagerFactory().createEntityManager();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            DependencyTrackingService firstService = newDependencyTrackingService(firstEm);
+            firstEm.getTransaction().begin();
+            Optional<DependencyTracking> firstRemoval = firstService.acknowledgeDelivery(dataChunk);
+            assertThat("the first caller removed the row", firstRemoval.isPresent(), is(true));
+
+            Future<?> second = executor.submit(() -> runInTransaction(secondEm,
+                    acknowledge(newDependencyTrackingService(secondEm), secondEm, job.getId(), 0)));
+
+            awaitRowLockWaiters(1);
+            assertThat("the second acknowledgement is queued behind the first", second.isDone(), is(false));
+
+            // Finish the first the way chunkDeliveringDone would, so the count it is entitled to is
+            // committed with its delete.
+            newJobGateBean(firstEm).advanceGateState(firstRemoval.get());
+            firstEm.getTransaction().commit();
+            second.get(30, TimeUnit.SECONDS);
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+            rollbackAndClose(firstEm);
+            rollbackAndClose(secondEm);
+        }
+
+        assertThat("counted once", dataChunksDelivered(job.getId()), is(1));
+        assertThat("gate closed while chunk 1 is outstanding",
+                gateOpen(new TrackingKey(job.getId(), 2)), is(false));
+    }
+
+    /**
+     * What the count is for. A duplicated acknowledgement leaves the job still needing its remaining
+     * data chunk, so the gate opens on that chunk and not on the duplicate.
+     */
+    @org.junit.Test
+    public void gateOpensOnlyAfterEveryDataChunkIsCounted() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 2);
+        markJobAsPartitioned(job);
+        TrackingKey terminationChunk = new TrackingKey(job.getId(), 2);
+
+        scheduleDataChunkForDelivery(job.getId(), 0);
+        acknowledgeDelivery(job.getId(), 0);
+        acknowledgeDelivery(job.getId(), 0);
+        assertThat("gate closed after the duplicate", gateOpen(terminationChunk), is(false));
+
+        scheduleDataChunkForDelivery(job.getId(), 1);
+        acknowledgeDelivery(job.getId(), 1);
+
+        assertThat("every data chunk counted", dataChunksDelivered(job.getId()), is(2));
+        assertThat("gate open once the job's data is delivered", gateOpen(terminationChunk), is(true));
+    }
+
+    /**
+     * The token's other branch. A termination chunk is not counted at all, and acknowledging it
+     * twice lifts its barrier once.
+     */
+    @org.junit.Test
+    public void repeatedAcknowledgementOfTheTerminationChunkLiftsTheBarrierOnce() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 2);
+        markJobAsPartitioned(job);
+        scheduleForDelivery(new TrackingKey(job.getId(), 2));
+
+        acknowledgeDelivery(job.getId(), 2);
+        acknowledgeDelivery(job.getId(), 2);
+
+        assertThat("the termination chunk counts nothing", dataChunksDelivered(job.getId()), is(0));
+        assertThat("barrier lifted", terminationBarrierLifted(job.getId()), is(true));
+    }
+
+    /**
+     * The window the transactional delete closes. A failure anywhere after the row is deleted rolls
+     * the delete back with the delivery count, so the redelivery that follows finds the chunk still
+     * there to be counted.
+     * <p>
+     * Under the old mechanism the removal was a map operation outside the JTA transaction, so it
+     * stood while the increment rolled back. The count was then permanently one short of
+     * {@code data_chunks_expected} with no chunk left to deliver, and the gate never opened. That is
+     * the failure the hourly sweep was the only way out of.
+     */
+    @org.junit.Test
+    public void gateWorkFailingAfterTheDelete_leavesTheRowForARedelivery() throws Exception {
+        JobEntity job = newPersistedTerminationJob(SUBMITTER, 2);
+        markJobAsPartitioned(job);
+        scheduleDataChunkForDelivery(job.getId(), 0);
+
+        JobGateBean failingGate = new JobGateBean(newJobGateRepository(), newDependencyTrackingRepository()) {
+            @Override
+            public void advanceGateState(DependencyTracking removed) {
+                jobGateRepository.incrementDataChunksDelivered(removed.getKey().getJobId());
+                throw new IllegalStateException("gate work failed after the delete");
+            }
+        };
+        JobSchedulerBean bean = new JobSchedulerBean(entityManager, mock(JobSchedulerTransactionsBean.class),
+                newPgJobStoreRepository(), null, newDependencyTrackingService(), failingGate,
+                newDeliveryDispatchRepository());
+
+        try {
+            runInTransaction(entityManager, () -> {
+                JobsBeanTest.notAborted(job.getId(), jb ->
+                        bean.chunkDeliveringDone(new Chunk(job.getId(), 0, Chunk.Type.DELIVERED)));
+                return null;
+            });
+            Assert.fail("the gate work was supposed to throw");
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), is("gate work failed after the delete"));
+        }
+
+        assertThat("the row is still out for delivery",
+                trackingStatus(new TrackingKey(job.getId(), 0)), is(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY.value));
+        assertThat("and the count went back with it", dataChunksDelivered(job.getId()), is(0));
+    }
+
+    /**
+     * Dropping a job's rows takes row locks on closed gates, which is the one place the delete-first
+     * lock order overlaps the gate sweep's row set, see the note on {@link JobGateBean}.
+     * <p>
+     * The first half of this test shows the overlap is real: a sweep on another connection waits for
+     * an uncommitted drop. The second half is what keeps that wait from ever being on a transaction
+     * that cannot commit until the sweep returns. {@code recheckBlocks} drops a job's rows and then,
+     * in the same transaction, nests the barrier lift and the gate sweep, both
+     * {@code REQUIRES_NEW}. Were the drop in the recheck's own transaction, those nested calls would
+     * wait on a second connection for a transaction waiting on them, which PostgreSQL cannot see as
+     * a cycle because one side of it is an EJB call. It would hang rather than deadlock, and the
+     * hourly recheck is the one thing that must not stop running.
+     */
+    @org.junit.Test
+    public void droppingAJobsRowsHoldsLocksTheGateSweepWaitsFor() throws Exception {
+        JobEntity earlier = newPersistedTerminationJob(SUBMITTER, 1);
+        markJobAsPartitioned(earlier);
+        JobEntity queued = newPersistedTerminationJob(SUBMITTER, 1);
+        TrackingKey closedDataChunk = new TrackingKey(queued.getId(), 0);
+        newPersistedChunkEntity(new ChunkEntity.Key(0, queued.getId()));
+        persistenceContext.run(() -> newDependencyTrackingRepository().insert(closedDataChunk, SINK_ID,
+                (int) SUBMITTER, ChunkSchedulingStatus.SCHEDULED_FOR_DELIVERY, Priority.NORMAL.getValue(), false));
+        // The barrier is marked lifted without the re-trigger that would have opened the gate
+        // behind it, which is the missed edge the sweep exists for and what makes the closed row a
+        // row the sweep means to write.
+        persistenceContext.run(() -> newJobGateRepository().markTerminationBarrierLifted(earlier.getId()));
+
+        EntityManager dropEm = entityManager.getEntityManagerFactory().createEntityManager();
+        EntityManager sweepEm = entityManager.getEntityManagerFactory().createEntityManager();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            dropEm.getTransaction().begin();
+            newDependencyTrackingRepository(dropEm).deleteByJob(queued.getId());
+
+            Future<?> sweep = executor.submit(() -> runInTransaction(sweepEm, () -> {
+                newJobGateBean(sweepEm).sweepScope(SINK_ID, (int) SUBMITTER);
+                return null;
+            }));
+
+            awaitRowLockWaiters(1);
+            assertThat("the sweep waits for the uncommitted drop", sweep.isDone(), is(false));
+
+            dropEm.getTransaction().commit();
+            sweep.get(30, TimeUnit.SECONDS);
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+            rollbackAndClose(dropEm);
+            rollbackAndClose(sweepEm);
+        }
+
+        TransactionAttribute attribute = DependencyTrackingService.class
+                .getMethod("removeJobId", int.class).getAnnotation(TransactionAttribute.class);
+        assertThat("removeJobId declares a transaction attribute", attribute, is(notNullValue()));
+        assertThat("and it commits on its own, so the recheck's nested sweep never waits on it",
+                attribute.value(), is(TransactionAttributeType.REQUIRES_NEW));
+    }
+
+    private void markJobAsPartitioned(JobEntity job) throws JobStoreException {
+        markJobAsPartitioned(job, entityManager);
+    }
+
+    /**
+     * Partitioning on a dedicated entity manager, for the tests that run it on another thread.
+     * Sharing the one the base class creates would have two threads inside a non-thread-safe entity
+     * manager, safe only while the other thread happens to be doing nothing.
+     */
+    private void markJobAsPartitioned(JobEntity job, EntityManager em) throws JobStoreException {
+        newJobSchedulerBean(newDependencyTrackingService(em), em).markJobAsPartitioned(job);
+    }
+
+    /**
+     * Acknowledges a chunk's delivery the way a sink's callback does, through
+     * {@code chunkDeliveringDone} rather than by calling the gate directly.
+     */
+    private void acknowledgeDelivery(int jobId, int chunkId) {
+        persistenceContext.run(() -> acknowledge(newDependencyTrackingService(), entityManager, jobId, chunkId).call());
+    }
+
+    private Callable<Void> acknowledge(DependencyTrackingService trackingService, EntityManager em,
+                                       int jobId, int chunkId) {
+        return () -> {
+            newJobSchedulerBean(trackingService, em)
+                    .chunkDeliveringDone(new Chunk(jobId, chunkId, Chunk.Type.DELIVERED));
+            return null;
+        };
+    }
+
+    /**
+     * Puts a data chunk into dependency tracking in the state an acknowledgement expects to find it
+     * in. Partitioning is what schedules these in production, and these tests do not run it, so the
+     * chunk row the foreign key needs has to be written here too.
+     */
+    private void scheduleDataChunkForDelivery(int jobId, int chunkId) {
+        newPersistedChunkEntity(new ChunkEntity.Key(chunkId, jobId));
+        scheduleChunk(newDependencyTrackingService(), new DependencyTracking(new TrackingKey(jobId, chunkId),
+                SINK_ID, (int) submitterOf(jobId)).setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
+    }
+
+    /**
+     * The same, for the termination chunk that {@code markJobAsPartitioned} has already added.
+     */
+    private void scheduleForDelivery(TrackingKey key) {
+        persistenceContext.run(() -> newDependencyTrackingService()
+                .setStatus(key, ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
+    }
+
+    private JobSchedulerBean newJobSchedulerBean(DependencyTrackingService trackingService, EntityManager em) {
+        return new JobSchedulerBean(em, mock(JobSchedulerTransactionsBean.class),
+                newPgJobStoreRepository(em), null, trackingService, newJobGateBean(em),
+                newDeliveryDispatchRepository(em));
+    }
+
+    private void deliverDataChunk(int jobId, int chunkId) {
+        deliverChunk(jobId, chunkId, false);
+    }
+
+    private void deliverTerminationChunk(int jobId, int chunkId) {
+        deliverChunk(jobId, chunkId, true);
+    }
+
+    private void deliverChunk(int jobId, int chunkId, boolean termination) {
+        int submitter = (int) submitterOf(jobId);
+        persistenceContext.run(() -> newJobGateBean().advanceGateState(
+                entry(new TrackingKey(jobId, chunkId), submitter, termination)));
+    }
+
+    /**
+     * The entry a delivery hands the gate, standing in for the one chunkDeliveringDone removes.
+     * Whether the chunk is its job's termination chunk is a fact about the entry rather than
+     * something the gate looks up, so a test that delivers one says which it is delivering.
+     */
+    private DependencyTracking dataEntry(int jobId, int chunkId) {
+        return entry(new TrackingKey(jobId, chunkId), (int) SUBMITTER, false);
+    }
+
+    private DependencyTracking terminationEntry(int jobId, int chunkId) {
+        return entry(new TrackingKey(jobId, chunkId), (int) SUBMITTER, true);
+    }
+
+    private DependencyTracking entry(TrackingKey key, int submitter, boolean termination) {
+        return new DependencyTracking(key, SINK_ID, submitter).setTermination(termination);
+    }
+
+    private long submitterOf(int jobId) {
+        entityManager.clear();
+        return entityManager.find(JobEntity.class, jobId).getSpecification().getSubmitterId();
+    }
+
+    private JobEntity newPersistedTerminationJob(long submitterId, int numberOfChunks) {
+        return newPersistedJob(submitterId, numberOfChunks, SinkContent.SinkType.TICKLE);
+    }
+
+    private JobEntity newPersistedJob(long submitterId, int numberOfChunks, SinkContent.SinkType sinkType) {
+        JobEntity jobEntity = newJobEntity(submitterId);
+        jobEntity.setNumberOfChunks(numberOfChunks);
+        jobEntity.setPriority(Priority.NORMAL);
+        jobEntity.setCachedSink(newPersistedSinkCacheEntity(new SinkBuilder()
+                .setId(SINK_ID)
+                .setContent(new SinkContentBuilder().setSinkType(sinkType).build())
+                .build()));
+        persist(jobEntity);
+        return jobEntity;
+    }
+
+    private Boolean isTermination(TrackingKey key) throws SQLException {
+        return trackingFlag(key, "is_termination");
+    }
+
+    private Boolean gateOpen(TrackingKey key) throws SQLException {
+        return trackingFlag(key, "gate_open");
+    }
+
+    /**
+     * @return the column value, or null if the chunk has no dependencytracking row at all
+     */
+    private int trackingStatus(TrackingKey key) throws SQLException {
+        try (Connection connection = newConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "select status from dependencytracking where jobid = ? and chunkid = ?")) {
+            statement.setInt(1, key.getJobId());
+            statement.setInt(2, key.getChunkId());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? resultSet.getInt(1) : -1;
+            }
+        }
+    }
+
+    private Boolean trackingFlag(TrackingKey key, String column) throws SQLException {
+        try (Connection connection = newConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "select " + column + " from dependencytracking where jobid = ? and chunkid = ?")) {
+            statement.setInt(1, key.getJobId());
+            statement.setInt(2, key.getChunkId());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? resultSet.getBoolean(1) : null;
+            }
+        }
+    }
+
+    private int dataChunksExpected(int jobId) throws SQLException {
+        return (Integer) jobColumn(jobId, "data_chunks_expected");
+    }
+
+    private int dataChunksDelivered(int jobId) throws SQLException {
+        return (Integer) jobColumn(jobId, "data_chunks_delivered");
+    }
+
+    private Boolean terminationBarrierLifted(int jobId) throws SQLException {
+        return (Boolean) jobColumn(jobId, "termination_barrier_lifted");
+    }
+
+    private Object jobColumn(int jobId, String column) throws SQLException {
+        try (Connection connection = newConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "select " + column + " from job where id = ?")) {
+            statement.setInt(1, jobId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+                return resultSet.getObject(1);
+            }
+        }
+    }
+}

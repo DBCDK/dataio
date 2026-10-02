@@ -12,8 +12,6 @@ import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.jobstore.service.dependencytracking.DefaultKeyGenerator;
-import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.invariant.InvariantUtil;
@@ -51,7 +49,6 @@ public class PartitioningParam {
     private EntityManager entityManager;
     private JobEntity jobEntity;
     private String dataFileId;
-    private KeyGenerator keyGenerator;
     private RecordSplitter recordSplitterType;
     private boolean previewOnly;
 
@@ -77,7 +74,6 @@ public class PartitioningParam {
         if (!this.jobEntity.hasFatalError()) {
             this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
             this.recordSplitterType = InvariantUtil.checkNotNullOrThrow(recordSplitterType, "recordSplitterType");
-            this.keyGenerator = new DefaultKeyGenerator();
             this.dataFileId = extractDataFileIdFromURN();
             this.dataFileInputStream = newDataFileInputStream();
             this.dataPartitioner = createDataPartitioner(includeFilter);
@@ -103,10 +99,6 @@ public class PartitioningParam {
 
     public DataPartitioner getDataPartitioner() {
         return dataPartitioner;
-    }
-
-    public KeyGenerator getKeyGenerator() {
-        return keyGenerator;
     }
 
     public void closeDataFile() {

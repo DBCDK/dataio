@@ -35,8 +35,6 @@ public class Chunk implements Iterable<ChunkItem> {
     private final long chunkId;
     @JsonProperty
     private final List<ChunkItem> items;
-    @JsonProperty
-    private final List<ChunkItem> next;
 
     /**
      * @param jobId   cannot be negative.
@@ -52,7 +50,6 @@ public class Chunk implements Iterable<ChunkItem> {
         this.chunkId = chunkId;
         this.type = type;
         this.items = new ArrayList<>();
-        this.next = new ArrayList<>(0);
     }
 
     // Private constructor for JsonUtil.fromJson().
@@ -61,11 +58,10 @@ public class Chunk implements Iterable<ChunkItem> {
     private Chunk(@JsonProperty("jobId") int jobId,
                   @JsonProperty("chunkId") long chunkId,
                   @JsonProperty("type") Type type,
-                  @JsonProperty("items") List<ChunkItem> items,
-                  @JsonProperty("next") List<ChunkItem> next) {
+                  @JsonProperty("items") List<ChunkItem> items) {
         this(jobId, chunkId, type);
         // ensure to uphold invariant
-        addAllItems(items, next);
+        addAllItems(items);
     }
 
     public int getJobId() {
@@ -90,11 +86,6 @@ public class Chunk implements Iterable<ChunkItem> {
     }
 
     @JsonIgnore
-    public boolean hasNextItems() {
-        return !next.isEmpty();
-    }
-
-    @JsonIgnore
     public boolean isTerminationChunk() {
         return items.size() == 1
                 && items.get(0).isTyped()
@@ -107,49 +98,19 @@ public class Chunk implements Iterable<ChunkItem> {
         }
     }
 
-    public void addAllItems(List<ChunkItem> current, List<ChunkItem> next) throws IllegalArgumentException {
-        if (next == null || next.isEmpty()) {
-            addAllItems(current);
-        } else {
-            if (current.size() != next.size())
-                throw new IllegalArgumentException(String.format("Size of current list %d differs from size of next list %s",
-                        current.size(), next.size()));
-            final Iterator<ChunkItem> currentIterator = current.iterator();
-            final Iterator<ChunkItem> nextIterator = next.iterator();
-            while (currentIterator.hasNext()) {
-                ChunkItem nextItem = ChunkItem.UNDEFINED;
-                if (nextIterator.hasNext()) {
-                    nextItem = nextIterator.next();
-                }
-                insertItem(currentIterator.next(), nextItem);
-            }
-        }
-    }
-
     public void insertItem(ChunkItem item) throws IllegalArgumentException {
-        if (item == ChunkItem.UNDEFINED) {
+        if (item == null) {
             throw new IllegalArgumentException("item can not be null");
         }
-        insert(items, item);
-    }
-
-    public void insertItem(ChunkItem currentItem, ChunkItem nextItem) throws IllegalArgumentException {
-        insertItem(currentItem);
-        if (nextItem != ChunkItem.UNDEFINED) {
-            if (currentItem.getId() != nextItem.getId()) {
-                throw new IllegalArgumentException(String.format("Current item id %d differs from next item id %d",
-                        currentItem.getId(), nextItem.getId()));
-            }
-            insert(next, nextItem);
+        if (item.getId() != items.size()) {
+            throw new IllegalArgumentException(String.format("ChunkItems must be inserted consecutively. Size of list: %d inserted item-id: %d",
+                    items.size(), item.getId()));
         }
+        items.add(item);
     }
 
     public List<ChunkItem> getItems() {
         return items;
-    }
-
-    public List<ChunkItem> getNext() {
-        return next;
     }
 
     @JsonIgnore
@@ -160,18 +121,6 @@ public class Chunk implements Iterable<ChunkItem> {
     @Override
     public Iterator<ChunkItem> iterator() {
         return items.iterator();
-    }
-
-    public Iterator<ChunkItem> nextIterator() {
-        return next.iterator();
-    }
-
-    private void insert(List<ChunkItem> collection, ChunkItem item) throws IllegalArgumentException {
-        if (item.getId() != collection.size()) {
-            throw new IllegalArgumentException(String.format("ChunkItems must be inserted consecutively. Size of list: %d inserted item-id: %d",
-                    collection.size(), item.getId()));
-        }
-        collection.add(item);
     }
 
     @Override

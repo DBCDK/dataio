@@ -18,6 +18,7 @@
         <module>acc-test-runner</module>
         <module>cli-image</module>
         <module>datafile-exporter</module>
+        <module>diff</module>
         <module>flow-test-runner</module>
         <module>job-replicator</module>
         <module>rerun-accessnew</module>

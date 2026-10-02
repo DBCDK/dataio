@@ -1,0 +1,21 @@
+-- Drops the per-chunk sequence-analysis key set.
+--
+-- The column held the union of the record keys of a chunk's items, computed at partitioning time
+-- from the sink's sequence analysis option. It was the input to the dependency graph, which V11
+-- removed together with dependencytracking.matchkeys, the scheduler's copy of the same keys. Since
+-- then the column has been written on every chunk and read by nothing. What orders deliveries now
+-- is described in job-store-service/dependency-tracking.md: the per-job gate orders whole jobs, and
+-- the delivery watermark orders versions of one record, keyed per item from RecordInfo rather than
+-- per chunk. V11's closing comment says this column stays until DI-3022, which is this migration.
+--
+-- Runs in a transaction, so a failure rolls back cleanly and Flyway re-runs this script on the next
+-- startup with no manual cleanup. Not CONCURRENTLY, deliberately: dropping a column is a catalogue
+-- update rather than a table rewrite, so the ACCESS EXCLUSIVE lock is held briefly and splitting the
+-- statement would gain nothing.
+--
+-- Rolling restart: the column is NOT NULL and the previous build names it in every INSERT INTO
+-- chunk, so an instance still partitioning when this runs fails its next chunk transaction. Nothing
+-- is lost, since BootstrapBean.resetJobsInterruptedDuringPartitioning returns the job queue entry to
+-- WAITING and partitioning resumes from job.numberofchunks, but that reset happens at instance
+-- startup rather than on a timer, so deploy this while partitioning is quiet.
+alter table chunk drop column sequenceanalysisdata;

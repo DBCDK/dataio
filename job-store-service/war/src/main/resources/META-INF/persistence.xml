@@ -13,7 +13,6 @@
     <class>dk.dbc.dataio.jobstore.service.entity.JobEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.SequenceAnalysisDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemEntity</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
@@ -24,12 +23,10 @@
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity</class>
-    <class>dk.dbc.dataio.jobstore.distributed.DependencyTracking</class>
-    <class>dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkSchedulingStatusConverter</class>
-    <class>dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunStateConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.WatermarkEntity</class>
     <shared-cache-mode>DISABLE_SELECTIVE</shared-cache-mode>
     <properties>
       <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
@@ -50,7 +47,6 @@
     <class>dk.dbc.dataio.jobstore.service.entity.JobEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkEntity</class>
-    <class>dk.dbc.dataio.jobstore.service.entity.SequenceAnalysisDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemEntity</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
@@ -61,12 +57,10 @@
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.RecordInfoConverter</class>
     <class>dk.dbc.dataio.commons.partioner.entity.ReorderedItemEntity</class>
-    <class>dk.dbc.dataio.jobstore.distributed.DependencyTracking</class>
-    <class>dk.dbc.dataio.jobstore.distributed.tools.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkSchedulingStatusConverter</class>
-    <class>dk.dbc.dataio.jobstore.distributed.tools.StringSetConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunStateConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RerunEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.WatermarkEntity</class>
     <properties>
       <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />

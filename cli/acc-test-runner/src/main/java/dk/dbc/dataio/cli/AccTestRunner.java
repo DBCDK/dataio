@@ -2,6 +2,7 @@ package dk.dbc.dataio.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.commons.useragent.UserAgent;
+import dk.dbc.dataio.cli.diff.ChunkDiffer;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.partioner.DataPartitioner;
 import dk.dbc.dataio.commons.partioner.DataPartitionerFactory;
@@ -12,8 +13,6 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitter;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
-import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import dk.dbc.dataio.sink.diff.MessageConsumerBean;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import jakarta.ws.rs.ProcessingException;
@@ -128,7 +127,6 @@ public class AccTestRunner implements Callable<Integer> {
     }
 
     Integer runTest(Flow localFlow, List<AccTestSuite> testSuites) throws Exception {
-        ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(null).build();
         Set<Long> flows = new HashSet<>();
 
         Flow resolvedRemotely = null;
@@ -167,9 +165,8 @@ public class AccTestRunner implements Callable<Integer> {
             LOGGER.info("running test suite with remote flow");
             Chunk remoteOutputChunk = processSuite(suite, remoteFlow);
 
-            final Chunk processed = new Chunk(localOutputChunk.getJobId(), localOutputChunk.getChunkId(), localOutputChunk.getType());
-            processed.addAllItems(remoteOutputChunk.getItems(), localOutputChunk.getItems());
-            Chunk diff = new MessageConsumerBean(serviceHub).handleChunk(processed);
+            Chunk diff = new ChunkDiffer().diff(localOutputChunk.getJobId(), localOutputChunk.getChunkId(),
+                    remoteOutputChunk.getItems(), localOutputChunk.getItems());
             reportFormat.printDiff(suite, remoteFlow, diff, revision, packageName);
         }
 

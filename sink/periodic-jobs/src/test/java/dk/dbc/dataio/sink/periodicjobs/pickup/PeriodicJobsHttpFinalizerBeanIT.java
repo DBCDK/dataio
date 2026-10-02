@@ -1,7 +1,6 @@
 package dk.dbc.dataio.sink.periodicjobs.pickup;
 
 import dk.dbc.dataio.commons.conversion.ConversionMetadata;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -90,11 +89,10 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withPickup(new HttpPickup()
                                 .withReceivingAgency(String.valueOf(receivingAgency)))));
-        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
 
         PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsHttpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
 
         InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
@@ -127,11 +125,10 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
                         .withPickup(new HttpPickup()
                                 .withReceivingAgency(String.valueOf(receivingAgency))
                                 .withOverrideFilename("autoprint"))));
-        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
 
         PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsHttpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
 
         ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
@@ -153,11 +150,10 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withPickup(new HttpPickup()
                                 .withReceivingAgency(String.valueOf(receivingAgency)))));
-        Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
 
         PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsHttpFinalizerBean.deliver(jobId, 0, delivery, env().getEntityManager()));
 
         ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
@@ -210,11 +206,10 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
                                 .withReceivingAgency(String.valueOf(receivingAgency))
                                 .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
                                 .withContentFooter("\nslut uge ${__WEEKCODE_EMO__}"))));
-        Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
 
         PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
         env().getPersistenceContext().run(() ->
-                periodicJobsHttpFinalizerBean.deliver(chunk, delivery, env().getEntityManager()));
+                periodicJobsHttpFinalizerBean.deliver(jobId, 3, delivery, env().getEntityManager()));
 
         InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());

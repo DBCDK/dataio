@@ -6,8 +6,8 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
-import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -15,6 +15,8 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.Watermark;
+import dk.dbc.dataio.jobstore.types.WatermarkResponse;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -38,19 +40,21 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ABORT_JOB;
-import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_ACC_TEST_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_CHUNK;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_EMPTY_JOB;
+import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_ITEM_DELIVERED;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_JOB;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.ADD_NOTIFICATION;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.COUNT_ITEMS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.COUNT_JOBS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_CACHED_FLOW;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_CHUNK_ITEM;
-import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_PROCESSED_NEXT_RESULT;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_SINK_STATUS_LIST;
+import static dk.dbc.dataio.commons.utils.jobstore.Metric.GET_WATERMARK;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_INVALID_TRANSFILE_NOTIFICATIONS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_ITEMS;
 import static dk.dbc.dataio.commons.utils.jobstore.Metric.LIST_JOBS;
@@ -133,24 +137,6 @@ public class JobStoreServiceConnector {
         InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
         try {
             return post(jobInputStream, Response.Status.CREATED, JobInfoSnapshot.class, ADD_JOB, JobStoreServiceConstants.JOB_COLLECTION);
-        } catch (ProcessingException e) {
-            throw new JobStoreServiceConnectorException("job-store communication error", e);
-        }
-    }
-
-    /**
-     * Creates new acceptance test job defined by given job specification in the job-store
-     *
-     * @param jobInputStream containing the job specification
-     * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     * @throws NullPointerException                                  if given null-valued argument
-     * @throws JobStoreServiceConnectorException                     on general communication failure
-     * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
-     */
-    public JobInfoSnapshot addAccTestJob(AccTestJobInputStream jobInputStream) throws NullPointerException, JobStoreServiceConnectorException {
-        try {
-            InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
-            return post(jobInputStream, Response.Status.CREATED, JobInfoSnapshot.class, ADD_ACC_TEST_JOB, JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS);
         } catch (ProcessingException e) {
             throw new JobStoreServiceConnectorException("job-store communication error", e);
         }
@@ -335,6 +321,47 @@ public class JobStoreServiceConnector {
     }
 
 
+    /**
+     * Retrieves the current delivery watermark for a given sink/record, if one exists
+     *
+     * @param sinkId    sink id
+     * @param recordKey opaque record key
+     * @return the watermark, or empty if no watermark row exists for this sink/record
+     * @throws NullPointerException              if given null-valued recordKey argument
+     * @throws IllegalArgumentException          if given empty-valued recordKey argument
+     * @throws JobStoreServiceConnectorException on general communication failure
+     */
+    public Optional<Watermark> getWatermark(int sinkId, String recordKey) throws JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: getWatermark({}, {})", sinkId, recordKey);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(recordKey, "recordKey");
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.SINK_WATERMARK)
+                .bind(JobStoreServiceConstants.SINK_ID_VARIABLE, sinkId);
+        final WatermarkResponse response = getWithQueryParameters(WatermarkResponse.class, Response.Status.OK, GET_WATERMARK,
+                Map.of(JobStoreServiceConstants.RECORD_KEY_QUERY_PARAM, recordKey), path.build());
+        return Optional.ofNullable(response.watermark());
+    }
+
+    /**
+     * Reports the outcome of a single item's delivery attempt to the job-store, advancing
+     * the delivery watermark when the outcome is DELIVERED
+     *
+     * @param itemDeliveryResult outcome of the delivery attempt
+     * @param jobId   job id
+     * @param chunkId chunk id
+     * @param itemId  item id
+     * @throws NullPointerException              if given null-valued itemDeliveryResult argument
+     * @throws JobStoreServiceConnectorException on general communication failure
+     */
+    public void addItemDelivered(ItemDeliveryResult itemDeliveryResult, int jobId, int chunkId, short itemId) throws NullPointerException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: addItemDelivered({}, {}, {})", jobId, chunkId, itemId);
+        InvariantUtil.checkNotNullOrThrow(itemDeliveryResult, "itemDeliveryResult");
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.CHUNK_ITEM_DELIVERED)
+                .bind(JobStoreServiceConstants.JOB_ID, jobId)
+                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
+                .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
+        post(itemDeliveryResult, Response.Status.OK, ADD_ITEM_DELIVERED, path.build());
+    }
+
     public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreServiceConnectorException, IllegalArgumentException {
         log.trace("JobStoreServiceConnector: getChunkItem({}, {}, {});", jobId, chunkId, itemId);
         InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
@@ -343,26 +370,6 @@ public class JobStoreServiceConnector {
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
         return get(ChunkItem.class, Response.Status.OK, GET_CHUNK_ITEM, path.build());
-    }
-
-    /**
-     * Retrieves processed next result: Representing the the data stored within the next chunk item as String
-     *
-     * @param jobId   job id
-     * @param chunkId chunk id
-     * @param itemId  item id
-     * @return processed next result
-     * @throws JobStoreServiceConnectorException on general failure to retrieve processed next result
-     * @throws IllegalArgumentException          on job id less than bound value
-     */
-    public ChunkItem getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException {
-        log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {});", jobId, chunkId, itemId);
-        InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
-                .bind(JobStoreServiceConstants.JOB_ID, jobId)
-                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
-                .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
-        return get(ChunkItem.class, Response.Status.OK, GET_PROCESSED_NEXT_RESULT, path.build());
     }
 
     /**
@@ -539,6 +546,34 @@ public class JobStoreServiceConnector {
             verifyResponseStatus(response, expected);
             status = Metric.StatusTag.SUCCESS;
             return readResponseEntity(response, clazz);
+        } finally {
+            if(metricRegistry != null) metric.timer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
+        }
+    }
+
+    private <R> R getWithQueryParameters(Class<R> clazz, Response.Status expected, Metric metric,
+                                          Map<String, Object> queryParameters, String... path) throws JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        Metric.StatusTag status = Metric.StatusTag.FAILED;
+        final HttpGet httpGet = new HttpGet(httpClient).withBaseUrl(baseUrl).withPathElements(path);
+        queryParameters.forEach(httpGet::withQueryParameter);
+        try (Response response = httpGet.execute()) {
+            verifyResponseStatus(response, expected);
+            status = Metric.StatusTag.SUCCESS;
+            return readResponseEntity(response, clazz);
+        } finally {
+            if (metricRegistry != null) {
+                metric.timer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
+            }
+        }
+    }
+
+    private <T> void post(T data, Response.Status expected, Metric metric, String... path) throws JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        Metric.StatusTag status = Metric.StatusTag.FAILED;
+        try (Response response = new HttpPost(httpClient).withBaseUrl(baseUrl).withPathElements(path).withJsonData(data).execute()) {
+            verifyResponseStatus(response, expected);
+            status = Metric.StatusTag.SUCCESS;
         } finally {
             if(metricRegistry != null) metric.timer(metricRegistry, status.tag).update(Duration.ofMillis(stopWatch.getElapsedTime()));
         }

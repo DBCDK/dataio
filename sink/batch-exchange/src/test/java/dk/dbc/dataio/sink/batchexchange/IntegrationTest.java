@@ -24,6 +24,7 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
     public static void migrateDatabase() {
         BatchExchangeDatabaseMigrator dbMigrator = new BatchExchangeDatabaseMigrator(dbContainer.datasource());
         dbMigrator.migrate();
+        BatchExchangeSchema.migrate(dbContainer.datasource());
     }
 
     protected static void executeScriptResource(String resourcePath) {
@@ -46,10 +47,13 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
     @BeforeEach
     public void resetDatabase() throws SQLException {
         try (Connection conn = dbContainer.createConnection(); Statement statement = conn.createStatement()) {
+            statement.executeUpdate("DELETE FROM held_item");
             statement.executeUpdate("DELETE FROM entry");
+            /* staged_item goes with its batch, through the cascade on the foreign key. */
             statement.executeUpdate("DELETE FROM batch");
             statement.executeUpdate("ALTER SEQUENCE entry_id_seq RESTART");
             statement.executeUpdate("ALTER SEQUENCE batch_id_seq RESTART");
+            statement.executeUpdate("ALTER SEQUENCE held_item_id_seq RESTART");
         }
     }
 

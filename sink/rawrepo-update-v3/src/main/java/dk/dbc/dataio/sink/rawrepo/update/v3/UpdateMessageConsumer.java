@@ -1,21 +1,19 @@
 package dk.dbc.dataio.sink.rawrepo.update.v3;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
-import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
+import dk.dbc.dataio.jse.artemis.common.jms.SinkMessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.rawrepo.update.v3.connector.UpdateServiceConnector;
-import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
-public class UpdateMessageConsumer extends MessageConsumerAdapter {
+public class UpdateMessageConsumer extends SinkMessageConsumerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateMessageConsumer.class);
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
@@ -34,47 +32,28 @@ public class UpdateMessageConsumer extends MessageConsumerAdapter {
         this.configRefresher = configRefresher;
     }
 
+    /**
+     * Sends a successfully processed item to the update service, and passes any other item through
+     * as ignored
+     * <p>
+     * An item the processor failed or ignored is reported as ignored rather than as delivered, so
+     * that it counts towards the job's ignored items and advances no delivery watermark for a
+     * record nothing was sent for.
+     */
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
-        Chunk chunk = unmarshallPayload(consumedMessage);
-        try {
-            OpenUpdateSinkConfig sinkConfig = getConfig(consumedMessage);
-            Chunk outcome = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-            ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(connector, sinkConfig);
-            try {
-                for (ChunkItem chunkItem : chunk) {
-                    DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                    switch (chunkItem.getStatus()) {
-                        case SUCCESS:
-                            outcome.insertItem(chunkItemProcessor.process(chunkItem));
-                            break;
-                        case FAILURE:
-                            outcome.insertItem(ChunkItem.ignoredChunkItem()
-                                    .withId(chunkItem.getId())
-                                    .withTrackingId(chunkItem.getTrackingId())
-                                    .withData("Failed by processor")
-                                    .withType(ChunkItem.Type.STRING)
-                                    .withEncoding(StandardCharsets.UTF_8));
-                            break;
-                        case IGNORE:
-                            outcome.insertItem(ChunkItem.ignoredChunkItem()
-                                    .withId(chunkItem.getId())
-                                    .withTrackingId(chunkItem.getTrackingId())
-                                    .withData("Ignored by processor")
-                                    .withType(ChunkItem.Type.STRING)
-                                    .withEncoding(StandardCharsets.UTF_8));
-                            break;
-                        default:
-                            throw new RuntimeException("Unknown chunk item status: " + chunkItem.getStatus().name());
-                    }
-                }
-            } finally {
-                DBCTrackedLogContext.remove();
-            }
-            sendResultToJobStore(outcome);
-        } catch (Exception any) {
-            LOGGER.error("Caught unhandled exception: {}", any.getMessage());
-            throw any;
+    protected ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item) {
+        OpenUpdateSinkConfig sinkConfig = getConfig(message);
+        switch (item.getStatus()) {
+            case SUCCESS:
+                return new ChunkItemProcessor(connector, sinkConfig).process(item);
+            case FAILURE:
+                return ItemDeliveryResult.of(ItemDeliveryResult.Status.IGNORED,
+                        passedThroughItem(item, "Failed by processor"));
+            case IGNORE:
+                return ItemDeliveryResult.of(ItemDeliveryResult.Status.IGNORED,
+                        passedThroughItem(item, "Ignored by processor"));
+            default:
+                throw new RuntimeException("Unknown chunk item status: " + item.getStatus().name());
         }
     }
 
@@ -86,6 +65,15 @@ public class UpdateMessageConsumer extends MessageConsumerAdapter {
     @Override
     public String getAddress() {
         return ADDRESS;
+    }
+
+    private ChunkItem passedThroughItem(ChunkItem item, String reason) {
+        return ChunkItem.ignoredChunkItem()
+                .withId(item.getId())
+                .withTrackingId(item.getTrackingId())
+                .withData(reason)
+                .withType(ChunkItem.Type.STRING)
+                .withEncoding(StandardCharsets.UTF_8);
     }
 
     private synchronized OpenUpdateSinkConfig getConfig(ConsumedMessage consumedMessage) {

@@ -7,14 +7,13 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.FileAppender;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.cli.diff.ChunkDiffer;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.jobprocessor2.service.ChunkProcessor;
-import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
-import dk.dbc.dataio.sink.diff.MessageConsumerBean;
 import jakarta.xml.bind.JAXB;
 import junit.testsuite.Testcase;
 import junit.testsuite.Testsuite;
@@ -178,11 +177,9 @@ public class FlowTestRunner implements Callable<Integer> {
     }
 
     private Chunk compare(Chunk expectedChunk, Chunk actualChunk) {
-        final ServiceHub serviceHub = new ServiceHub.Builder().withJobStoreServiceConnector(null).build();
-        final Chunk compareChunk = new Chunk(actualChunk.getJobId(), actualChunk.getChunkId(), actualChunk.getType());
-        compareChunk.addAllItems(expectedChunk.getItems(), actualChunk.getItems());
         try {
-            return new MessageConsumerBean(serviceHub).handleChunk(compareChunk);
+            return new ChunkDiffer().diff(actualChunk.getJobId(), actualChunk.getChunkId(),
+                    expectedChunk.getItems(), actualChunk.getItems());
         } catch (InvalidMessageException e) {
             throw new IllegalStateException(e);
         }

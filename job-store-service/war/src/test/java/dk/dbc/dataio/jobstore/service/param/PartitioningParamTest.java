@@ -124,7 +124,6 @@ public class PartitioningParamTest extends ParamBaseTest {
         when(fileStoreServiceConnector.getFile(anyString())).thenReturn(mock(InputStream.class));
         PartitioningParam partitioningParam = newPartitioningParam(newJobEntity(jobSpecification));
 
-        assertThat(partitioningParam.getKeyGenerator(), is(notNullValue()));
         assertThat(partitioningParam.getDataPartitioner(), is(notNullValue()));
         assertThat(partitioningParam.getDiagnostics().size(), is(0));
         assertThat(partitioningParam.getDataFileId(), is(DATA_FILE_ID));

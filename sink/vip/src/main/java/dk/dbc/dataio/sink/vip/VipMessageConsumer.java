@@ -6,19 +6,17 @@ import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.commons.useragent.UserAgent;
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.VipSinkConfig;
-import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.jse.artemis.common.jms.MessageConsumerAdapter;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
+import dk.dbc.dataio.jse.artemis.common.jms.SinkMessageConsumerAdapter;
 import dk.dbc.dataio.jse.artemis.common.service.ServiceHub;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnector;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorException;
 import dk.dbc.dataio.sink.vip.connector.VipCoreConnectorUnexpectedStatusCodeException;
-import dk.dbc.log.DBCTrackedLogContext;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
@@ -27,7 +25,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-public class VipMessageConsumer extends MessageConsumerAdapter {
+public class VipMessageConsumer extends SinkMessageConsumerAdapter {
     private static final String QUEUE = SinkConfig.QUEUE.fqnAsQueue();
     private static final String ADDRESS = SinkConfig.QUEUE.fqnAsAddress();
     private final ConfigBean configBean;
@@ -40,11 +38,45 @@ public class VipMessageConsumer extends MessageConsumerAdapter {
         this.configBean = configBean;
     }
 
+    /**
+     * Creates a consumer already holding the connector to deliver through, for tests having no
+     * VIP-CORE endpoint to build one against
+     *
+     * @param config sink config the given connector was built from, so that a message carrying the
+     *               same config leaves the connector in place
+     */
+    VipMessageConsumer(ServiceHub serviceHub, ConfigBean configBean, VipSinkConfig config,
+                       VipCoreConnector vipCoreConnector) {
+        this(serviceHub, configBean);
+        this.config = config;
+        this.vipCoreConnector = vipCoreConnector;
+    }
+
+    /**
+     * Uploads a successfully processed item's records to VIP-CORE, and passes any other item
+     * through as ignored
+     * <p>
+     * An item the processor failed or ignored is reported as ignored rather than as delivered, so
+     * that it counts towards the job's ignored items and advances no delivery watermark for a
+     * record nothing was sent for.
+     */
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
-        Chunk chunk = unmarshallPayload(consumedMessage);
-        refreshState(configBean.getConfig(consumedMessage));
-        sendResultToJobStore(handleChunk(chunk));
+    protected ItemDeliveryResult deliverItem(ConsumedMessage message, ChunkItem item) {
+        VipCoreConnector connector = refreshState(configBean.getConfig(message));
+        switch (item.getStatus()) {
+            case FAILURE:
+                return ItemDeliveryResult.of(ItemDeliveryResult.Status.IGNORED,
+                        outcome(item)
+                                .withStatus(ChunkItem.Status.IGNORE)
+                                .withData("Failed by processor"));
+            case IGNORE:
+                return ItemDeliveryResult.of(ItemDeliveryResult.Status.IGNORED,
+                        outcome(item)
+                                .withStatus(ChunkItem.Status.IGNORE)
+                                .withData("Ignored by processor"));
+            default:
+                return deliverToVipCore(connector, item);
+        }
     }
 
     @Override
@@ -57,74 +89,82 @@ public class VipMessageConsumer extends MessageConsumerAdapter {
         return ADDRESS;
     }
 
-    Chunk handleChunk(Chunk chunk) {
-        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+    /**
+     * Uploads the records of one item, reporting an upload VIP-CORE did not accept as failed
+     * <p>
+     * A rejection is failed rather than retried: the connector exhausts a retry policy of its own
+     * before reporting one, so having the JMS session roll back would retry a second time on top of
+     * that. A failed item advances no delivery watermark, leaving a later version of the record
+     * free to reach VIP-CORE.
+     */
+    private ItemDeliveryResult deliverToVipCore(VipCoreConnector connector, ChunkItem item) {
         try {
-            for (ChunkItem chunkItem : chunk.getItems()) {
-                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                result.insertItem(handleChunkItem(chunkItem));
-            }
-        } finally {
-            DBCTrackedLogContext.remove();
-        }
-        return result;
-    }
-
-    private ChunkItem handleChunkItem(ChunkItem chunkItem) {
-        ChunkItem result = new ChunkItem()
-                .withId(chunkItem.getId())
-                .withTrackingId(chunkItem.getTrackingId())
-                .withType(ChunkItem.Type.STRING)
-                .withEncoding(StandardCharsets.UTF_8);
-        try {
-            switch (chunkItem.getStatus()) {
-                case FAILURE:
-                    return result
-                            .withStatus(ChunkItem.Status.IGNORE)
-                            .withData("Failed by processor");
-                case IGNORE:
-                    return result
-                            .withStatus(ChunkItem.Status.IGNORE)
-                            .withData("Ignored by processor");
-                default:
-                    vipLoad(chunkItem);
-                    return result
+            vipLoad(connector, item);
+            return ItemDeliveryResult.of(ItemDeliveryResult.Status.DELIVERED,
+                    outcome(item)
                             .withStatus(ChunkItem.Status.SUCCESS)
-                            .withData("Loaded");
-            }
+                            .withData("Loaded"));
         } catch (Exception e) {
-            if (e instanceof VipCoreConnectorUnexpectedStatusCodeException) {
-                Optional<VipCoreConnector.Error> error =
-                        ((VipCoreConnectorUnexpectedStatusCodeException) e).getError();
-                if (error.isPresent()) {
-                    String errorMessage = e.getMessage() + " - " + error.get();
-                    return result
+            String errorMessage = errorMessage(e);
+            return ItemDeliveryResult.of(ItemDeliveryResult.Status.FAILED,
+                    outcome(item)
                             .withStatus(ChunkItem.Status.FAILURE)
                             .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, errorMessage, e))
-                            .withData(errorMessage);
-                }
-            }
-            return result
-                    .withStatus(ChunkItem.Status.FAILURE)
-                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e))
-                    .withData(e.getMessage());
+                            .withData(errorMessage));
         }
     }
 
-    private void vipLoad(ChunkItem chunkItem) throws VipCoreConnectorException, IOException, JSONBException {
+    /**
+     * Creates the delivering outcome item of a delivered item, without the status and data naming
+     * what became of it
+     */
+    private ChunkItem outcome(ChunkItem item) {
+        return new ChunkItem()
+                .withId(item.getId())
+                .withTrackingId(item.getTrackingId())
+                .withType(ChunkItem.Type.STRING)
+                .withEncoding(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Names what went wrong, adding what VIP-CORE said to the status code it said it with
+     */
+    private String errorMessage(Exception e) {
+        if (e instanceof VipCoreConnectorUnexpectedStatusCodeException) {
+            Optional<VipCoreConnector.Error> error =
+                    ((VipCoreConnectorUnexpectedStatusCodeException) e).getError();
+            if (error.isPresent()) {
+                return e.getMessage() + " - " + error.get();
+            }
+        }
+        return e.getMessage();
+    }
+
+    private void vipLoad(VipCoreConnector connector, ChunkItem chunkItem)
+            throws VipCoreConnectorException, IOException, JSONBException {
         AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
         while (addiReader.hasNext()) {
             AddiRecord addiRecord = addiReader.next();
             AddiMetaData addiMetaData = jsonbContext.unmarshall(StringUtil.asString(addiRecord.getMetaData()), AddiMetaData.class);
-            vipCoreConnector.vipload(addiMetaData.format(), StringUtil.asString(addiRecord.getContentData()));
+            connector.vipload(addiMetaData.format(), StringUtil.asString(addiRecord.getContentData()));
         }
     }
 
-    private synchronized void refreshState(VipSinkConfig latestConfig) {
+    /**
+     * Rebuilds the VIP-CORE connector when the sink config has changed, and hands back the one to
+     * deliver through
+     * <p>
+     * The connector is returned rather than only stored, so that a delivery uses one connector for
+     * the whole item. Several consumer threads share this consumer, and reading the field outside
+     * this method would let one of them pick up a connector another thread is in the middle of
+     * replacing and closing.
+     */
+    private synchronized VipCoreConnector refreshState(VipSinkConfig latestConfig) {
         if (!latestConfig.equals(config)) {
             config = latestConfig;
             vipCoreConnector = createVipCoreConnector(config);
         }
+        return vipCoreConnector;
     }
 
     @SuppressWarnings("java:S2095")

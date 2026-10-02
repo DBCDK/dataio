@@ -124,6 +124,14 @@ public class State implements Serializable {
 
     /**
      * Method updating used to update a state element
+     * <p>
+     * The endDate guard below makes a repeat call a silent no-op only once the phase
+     * is already closed - it does not by itself prevent double-counting a duplicate
+     * update that arrives while the phase is still open (e.g. two racing calls for
+     * the same not-yet-fully-reported item). Callers whose contributions could be
+     * duplicated before the phase closes need their own idempotency check upstream
+     * of this method (see dk.dbc.dataio.jobstore.service.ejb.PgJobStore.addItemDelivered
+     * for such a check, done under an exclusive lock).
      *
      * @param stateElement to update
      * @param stateChange  holding the values used for update

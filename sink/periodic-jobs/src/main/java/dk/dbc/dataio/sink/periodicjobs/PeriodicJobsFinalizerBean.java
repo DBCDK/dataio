@@ -1,6 +1,5 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.harvester.types.FtpPickup;
@@ -28,23 +27,32 @@ public class PeriodicJobsFinalizerBean {
     PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean;
     PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean;
 
-    public Chunk handleTerminationChunk(Chunk chunk, EntityManager entityManager) throws InvalidMessageException {
-        LOGGER.info("Finalizing periodic job {}", chunk.getJobId());
+    /**
+     * Delivers the job's accumulated datablocks to its pickup destination
+     *
+     * @param chunkId id of the job's termination chunk, needed only to tell an empty job
+     *                from one that has data, see
+     *                {@link dk.dbc.dataio.sink.periodicjobs.pickup.PeriodicJobsPickupFinalizer#isEmptyJob(int, int)}
+     * @return the job's delivering outcome, as the JOB_END item reported for its
+     * termination item
+     */
+    public ChunkItem finalizeJob(int jobId, int chunkId, EntityManager entityManager) throws InvalidMessageException {
+        LOGGER.info("Finalizing periodic job {}", jobId);
 
-        PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk, entityManager);
+        PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(jobId, chunkId, entityManager);
         Pickup pickup = delivery.getConfig().getContent().getPickup();
-        Chunk result;
+        ChunkItem result;
 
         if (pickup instanceof HttpPickup) {
-            result = periodicJobsHttpFinalizerBean.deliver(chunk, delivery, entityManager);
+            result = periodicJobsHttpFinalizerBean.deliver(jobId, chunkId, delivery, entityManager);
         } else if (pickup instanceof MailPickup) {
-            result = periodicJobsMailFinalizerBean.deliver(chunk, delivery, entityManager);
+            result = periodicJobsMailFinalizerBean.deliver(jobId, chunkId, delivery, entityManager);
         } else if (pickup instanceof FtpPickup) {
-            result = periodicJobsFtpFinalizerBean.deliver(chunk, delivery, entityManager);
+            result = periodicJobsFtpFinalizerBean.deliver(jobId, chunkId, delivery, entityManager);
         } else if (pickup instanceof SFtpPickup) {
-            result = periodicJobsSFtpFinalizerBean.deliver(chunk, delivery, entityManager);
+            result = periodicJobsSFtpFinalizerBean.deliver(jobId, chunkId, delivery, entityManager);
         } else {
-            result = getUnhandledPickupTypeResult(chunk, pickup);
+            result = unhandledPickupTypeResult(pickup);
         }
 
         LOGGER.info("Deleted {} data blocks for job {}",
@@ -68,13 +76,10 @@ public class PeriodicJobsFinalizerBean {
                 .executeUpdate();
     }
 
-    private Chunk getUnhandledPickupTypeResult(Chunk chunk, Pickup pickupType) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        result.insertItem(
-                ChunkItem.failedChunkItem()
-                        .withType(ChunkItem.Type.JOB_END)
-                        .withData("Unhandled pickup type: " + pickupType));
-        return result;
+    private ChunkItem unhandledPickupTypeResult(Pickup pickupType) {
+        return ChunkItem.failedChunkItem()
+                .withType(ChunkItem.Type.JOB_END)
+                .withData("Unhandled pickup type: " + pickupType);
     }
     public PeriodicJobsFinalizerBean withPeriodicJobsConfigurationBean(PeriodicJobsConfigurationBean periodicJobsConfigurationBean) {
         this.periodicJobsConfigurationBean = periodicJobsConfigurationBean;

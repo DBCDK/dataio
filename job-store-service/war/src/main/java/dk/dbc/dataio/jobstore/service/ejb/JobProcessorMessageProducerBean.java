@@ -71,7 +71,20 @@ public class JobProcessorMessageProducerBean extends AbstractMessageProducer imp
         queueNameFromJob = this::resolveProcessorQueue;
     }
 
-    String resolveProcessorQueue(JobEntity job) {
+    /**
+     * Picks the processor queue from the job's flow engine.
+     * <p>
+     * Public because {@link #init()} binds it as {@code this::resolveProcessorQueue}, and inside a
+     * {@code @PostConstruct} {@code this} is Payara's generated no-interface view. A method
+     * reference to a non-public method on that view throws
+     * {@code EJBException: Illegal non-business method access on no-interface view} when it is
+     * applied, which took out the whole abort path, see
+     * {@code JobGateBoundaryIT.abortLiftsTheBarrierAndOpensLaterJobs}.
+     *
+     * @param job job whose flow decides the engine
+     * @return the queue the job's chunks belong on
+     */
+    public String resolveProcessorQueue(JobEntity job) {
         JavaScriptEngine engine = Optional.ofNullable(job.getCachedFlow())
                 .map(FlowCacheEntity::getFlow)
                 .map(Flow::getContent)

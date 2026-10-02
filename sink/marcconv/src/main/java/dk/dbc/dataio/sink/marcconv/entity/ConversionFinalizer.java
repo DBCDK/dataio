@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.conversion.ConversionParam;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -25,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
@@ -39,6 +39,21 @@ import static java.lang.String.format;
 public class ConversionFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFinalizer.class);
     public static final String ORIGIN = "dataio/sink/marcconv";
+
+    /**
+     * Buffers conversion output until it holds at least this many bytes, then appends it
+     * to the file being uploaded
+     * <p>
+     * A threshold, not a cap. Blocks are buffered whole, so the append that crosses it
+     * carries the overshoot with it, a block larger than this is appended on its own, and
+     * the last append of a job carries whatever is left over.
+     * <p>
+     * One block holds one item's conversion output, so a job of a hundred thousand records
+     * has a hundred thousand of them. Appending each one on its own would make as many
+     * calls to file-store, where buffering makes roughly one per megabyte.
+     */
+    static final int UPLOAD_BUFFER_SIZE = 1024 * 1024;
+
     FileStoreServiceConnector fileStoreServiceConnector;
     JobStoreServiceConnector jobStoreServiceConnector;
 
@@ -47,8 +62,20 @@ public class ConversionFinalizer {
         jobStoreServiceConnector = serviceHub.jobStoreServiceConnector;
     }
 
-    public Chunk handleTerminationChunk(Chunk chunk, EntityManager entityManager) {
-        Integer jobId = Math.toIntExact(chunk.getJobId());
+    /**
+     * Uploads the conversion output of every item of the job to file-store as one file and
+     * discards the job's blocks and conversion parameters
+     * <p>
+     * Runs on the job's termination item, which reaches the sink only once every data item
+     * of the job has been reported, so every block the job will ever have is committed by
+     * the time this is called.
+     *
+     * @param jobId           job to finalize
+     * @param terminationItem item triggering the finalization, whose identity the outcome
+     *                        carries back
+     * @return delivering outcome for the termination item, naming the uploaded file
+     */
+    public ChunkItem finalizeJob(int jobId, ChunkItem terminationItem, EntityManager entityManager) {
         LOGGER.info("Finalizing conversion job {}", jobId);
         JobListCriteria findJobCriteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         JobInfoSnapshot jobInfoSnapshot;
@@ -66,15 +93,15 @@ public class ConversionFinalizer {
         if (existingFile.isPresent()) {
             fileId = existingFile.get().getId();
         } else {
-            fileId = uploadFile(fileStoreServiceConnector, chunk, entityManager);
+            fileId = uploadFile(fileStoreServiceConnector, jobId, entityManager);
             if (fileId != null) {
-                uploadMetadata(fileStoreServiceConnector, chunk, fileId, conversionMetadata);
+                uploadMetadata(fileStoreServiceConnector, jobId, fileId, conversionMetadata);
             }
         }
         LOGGER.info("Deleted {} conversion blocks for job {}", deleteConversionBlocks(jobId, entityManager), jobId);
         LOGGER.info("Deleted {} conversion params for job {}", deleteConversionParam(jobId, entityManager), jobId);
 
-        return newResultChunk(fileStoreServiceConnector, chunk, fileId);
+        return newResultItem(fileStoreServiceConnector, terminationItem, fileId);
     }
 
     public void deleteJob(int jobId, EntityManager entityManager) {
@@ -98,22 +125,31 @@ public class ConversionFinalizer {
         }
     }
 
-    private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, EntityManager entityManager) {
-        Query getConversionBlocksQuery = entityManager.createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME).setParameter(1, chunk.getJobId());
+    /**
+     * Uploads the job's blocks to file-store as one file, in ascending chunk and item
+     * order, which is the order the job's records were partitioned in
+     *
+     * @return id of the uploaded file, or null when the job produced no conversion output
+     */
+    private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, int jobId, EntityManager entityManager) {
+        Query getConversionBlocksQuery = entityManager.createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME).setParameter(1, jobId);
 
         String fileId = null;
         try (ResultSet<ConversionBlock> blocks = new ResultSet<>(entityManager, getConversionBlocksQuery, new ConversionBlockResultSetMapping())) {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             for (ConversionBlock block : blocks) {
                 if (block == null || block.getBytes().length == 0) {
                     continue;
                 }
-                if (fileId == null) {
-                    fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(block.getBytes()));
-                } else {
-                    fileStoreServiceConnector.appendToFile(fileId, block.getBytes());
+                buffer.writeBytes(block.getBytes());
+                if (buffer.size() >= UPLOAD_BUFFER_SIZE) {
+                    fileId = upload(fileStoreServiceConnector, fileId, buffer);
                 }
             }
-            LOGGER.info("Uploaded conversion file {} for job {}", fileId, chunk.getJobId());
+            if (buffer.size() > 0) {
+                fileId = upload(fileStoreServiceConnector, fileId, buffer);
+            }
+            LOGGER.info("Uploaded conversion file {} for job {}", fileId, jobId);
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
             throw new RuntimeException(e);
@@ -121,10 +157,26 @@ public class ConversionFinalizer {
         return fileId;
     }
 
-    private void uploadMetadata(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, String fileId, ConversionMetadata conversionMetadata) {
+    /**
+     * Writes the buffered blocks to file-store and empties the buffer
+     *
+     * @return id of the file written to, created by this call when there was none yet
+     */
+    private String upload(FileStoreServiceConnector fileStoreServiceConnector, String fileId, ByteArrayOutputStream buffer)
+            throws FileStoreServiceConnectorException {
+        byte[] bytes = buffer.toByteArray();
+        buffer.reset();
+        if (fileId == null) {
+            return fileStoreServiceConnector.addFile(new ByteArrayInputStream(bytes));
+        }
+        fileStoreServiceConnector.appendToFile(fileId, bytes);
+        return fileId;
+    }
+
+    private void uploadMetadata(FileStoreServiceConnector fileStoreServiceConnector, int jobId, String fileId, ConversionMetadata conversionMetadata) {
         try {
             fileStoreServiceConnector.addMetadata(fileId, conversionMetadata);
-            LOGGER.info("Uploaded conversion metadata {} for job {}", conversionMetadata, chunk.getJobId());
+            LOGGER.info("Uploaded conversion metadata {} for job {}", conversionMetadata, jobId);
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
             deleteFile(fileStoreServiceConnector, fileId);
             throw new RuntimeException(e);
@@ -164,8 +216,13 @@ public class ConversionFinalizer {
         }
     }
 
-    private Chunk newResultChunk(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, String fileId) {
-        Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+    /**
+     * The delivering outcome recorded for the termination item, naming the uploaded file
+     * <p>
+     * A job that produced no conversion output has no file to name and is reported failed,
+     * which completes it and sets its fatal error flag.
+     */
+    private ChunkItem newResultItem(FileStoreServiceConnector fileStoreServiceConnector, ChunkItem terminationItem, String fileId) {
         ChunkItem chunkItem;
         if (fileId == null) {
             Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.ERROR, "file-store file ID is null");
@@ -173,8 +230,11 @@ public class ConversionFinalizer {
         } else {
             chunkItem = ChunkItem.successfulChunkItem().withData(String.join("/", fileStoreServiceConnector.getBaseUrl(), "files", fileId));
         }
-        result.insertItem(chunkItem.withId(0).withType(ChunkItem.Type.JOB_END).withEncoding(StandardCharsets.UTF_8));
-        return result;
+        return chunkItem
+                .withId(terminationItem.getId())
+                .withTrackingId(terminationItem.getTrackingId())
+                .withType(ChunkItem.Type.JOB_END)
+                .withEncoding(StandardCharsets.UTF_8);
     }
 
     private static class ConversionBlockResultSetMapping implements Function<java.sql.ResultSet, ConversionBlock> {
@@ -183,7 +243,7 @@ public class ConversionFinalizer {
             if (resultSet != null) {
                 try {
                     ConversionBlock conversionBlock = new ConversionBlock();
-                    conversionBlock.setKey(new ConversionBlock.Key(resultSet.getInt("JOBID"), resultSet.getInt("CHUNKID")));
+                    conversionBlock.setKey(new ConversionBlock.Key(resultSet.getInt("JOBID"), resultSet.getInt("CHUNKID"), resultSet.getInt("ITEMID")));
                     conversionBlock.setBytes(resultSet.getBytes("BYTES"));
                     return conversionBlock;
                 } catch (SQLException e) {

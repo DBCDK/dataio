@@ -5,8 +5,8 @@ import dk.dbc.dataio.commons.testcontainers.PostgresContainerJPAUtils;
 import dk.dbc.ticklerepo.TickleRepoDatabaseMigrator;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -17,18 +17,19 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 public abstract class IntegrationTest implements PostgresContainerJPAUtils {
     protected static EntityManagerFactory entityManagerFactory;
 
     private static DataSource datasource = dbContainer.datasource();
 
-    @BeforeClass
+    @BeforeAll
     public static void migrateDatabase() {
         TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(datasource);
         dbMigrator.migrate();
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void createEntityManagerFactory() {
         entityManagerFactory = Persistence.createEntityManagerFactory("tickleRepoIT",
                 dbContainer.entityManagerProperties());
@@ -51,7 +52,7 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
         }
     }
 
-    @Before
+    @BeforeEach
     public void resetDatabase() throws SQLException {
         try (Connection conn = datasource.getConnection();
              Statement statement = conn.createStatement()) {
@@ -64,7 +65,7 @@ public abstract class IntegrationTest implements PostgresContainerJPAUtils {
         }
     }
 
-    @Before
+    @BeforeEach
     public void clearEntityManagerCache() {
         entityManagerFactory.getCache().evictAll();
     }

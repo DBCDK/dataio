@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
+import dk.dbc.dataio.jobstore.types.ItemDeliveryResult;
 import dk.dbc.dataio.sink.rawrepo.update.v3.connector.Authentication;
 import dk.dbc.dataio.sink.rawrepo.update.v3.connector.UpdateRequest;
 import dk.dbc.dataio.sink.rawrepo.update.v3.connector.UpdateResponse;
@@ -37,19 +38,33 @@ public class ChunkItemProcessor {
         this.validationMessageInterpreter = new ValidationMessageInterpreter(config.getIgnoredValidationErrors());
     }
 
-    public ChunkItem process(ChunkItem chunkItem) {
+    /**
+     * Sends the update requests carried by one item to the update service and states how the
+     * delivering phase should count the item
+     * <p>
+     * The verdict is decided here rather than read off the returned chunk item's status, because
+     * that status is set as a side effect of {@link ChunkItem#withDiagnostics(Diagnostic...)} for
+     * any diagnostic above WARNING level. A response carrying warnings alone leaves the item
+     * successful and is a delivery, so deriving the verdict from the status would leave job-store's
+     * counting and the record's delivery watermark to a setter in commons/types.
+     *
+     * @param chunkItem successfully processed item, its data holding a JSON list of update requests
+     * @return DELIVERED when every request was accepted or rejected with warnings alone, FAILED when
+     * the data could not be read as update requests or the update service rejected one of them
+     */
+    public ItemDeliveryResult process(ChunkItem chunkItem) {
         List<UpdateRequest> records;
         try {
             records = OBJECT_MAPPER.readValue(chunkItem.getData(),
                     OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, UpdateRequest.class));
         } catch (Exception e) {
             String message = "Failed to parse update record list: " + e.getMessage();
-            return ChunkItem.failedChunkItem()
+            return ItemDeliveryResult.of(ItemDeliveryResult.Status.FAILED, ChunkItem.failedChunkItem()
                     .withId(chunkItem.getId())
                     .withType(ChunkItem.Type.STRING)
                     .withTrackingId(chunkItem.getTrackingId())
                     .withData(message)
-                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, message, e)));
         }
 
         StringBuilder output = new StringBuilder();
@@ -70,7 +85,23 @@ public class ChunkItemProcessor {
         if (!diagnostics.isEmpty()) {
             result.appendDiagnostics(diagnostics);
         }
-        return result;
+        return ItemDeliveryResult.of(deliveryStatus(diagnostics), result);
+    }
+
+    /**
+     * Reads the outcome of the update requests off the diagnostics they produced
+     *
+     * @param diagnostics diagnostics collected across every request of one item
+     * @return FAILED when the update service rejected a request, DELIVERED otherwise. A WARNING
+     * level diagnostic accompanies an accepted request and so does not fail the item
+     */
+    private ItemDeliveryResult.Status deliveryStatus(List<Diagnostic> diagnostics) {
+        boolean rejected = diagnostics.stream()
+                .anyMatch(diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING);
+        if (rejected) {
+            return ItemDeliveryResult.Status.FAILED;
+        }
+        return ItemDeliveryResult.Status.DELIVERED;
     }
 
     private void setAuthentication(UpdateRequest record) {

@@ -36,6 +36,9 @@
         <!-- java runtime version -->
         <java.rt.version>21</java.rt.version>
 
+        <!-- extra JVM args for surefire/failsafe, set with -DargLine=... -->
+        <argLine></argLine>
+
         <docker.registry>docker-metascrum.artifacts.dbccloud.dk</docker.registry>
         <docker.payara.version>latest</docker.payara.version>
         <docker.build.skip>true</docker.build.skip>
@@ -1153,6 +1156,7 @@
                              (including test mocks) retains its expected classpath position.
                         -->
                         <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+                        <argLine>${argLine} -javaagent:@{org.mockito:mockito-core:jar}</argLine>
                     </configuration>
                     <executions>
                         <execution>
@@ -1208,6 +1212,22 @@
             </plugin>
             <plugin>
                 <!--
+                  Sets the org.mockito:mockito-core:jar property used by the surefire and failsafe argLine
+                  to load Mockito as a javaagent, so the inline mock maker never needs to self-attach.
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>dependency-properties</id>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!--
                   If you need to exclude deploy for a specific module
                   add this plugin to the module and set 'skip' to 'true'.
                 -->
@@ -1249,7 +1269,7 @@
                            Property value seems to magically default to false -->
                     <!--suppress UnresolvedMavenProperty, MavenModelInspection -->
                     <skipTests>${skip.surefire.tests}</skipTests>
-                    <argLine>-Djava.io.tmpdir=${project.build.directory} -Djna.tmpdir=${project.build.directory}</argLine>
+                    <argLine>${argLine} -javaagent:@{org.mockito:mockito-core:jar} -Djava.io.tmpdir=${project.build.directory} -Djna.tmpdir=${project.build.directory}</argLine>
                 </configuration>
                 <dependencies>
                     <dependency>

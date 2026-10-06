@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -51,7 +52,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     private final WeekResolverConnector weekResolverConnector =
             mock(WeekResolverConnector.class);
 
-    private final String SFTP_SERVER = getLocalIPAddress();
+    private final String SFTP_SERVER = InetAddress.getLoopbackAddress().getHostAddress();
 
     @Rule
     public final SftpServerRule fakeSFtpServer = new SftpServerRule()

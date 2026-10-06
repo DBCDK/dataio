@@ -6,10 +6,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.time.Duration;
 
 public abstract class ContainerTest extends IntegrationTest {
@@ -41,15 +37,6 @@ public abstract class ContainerTest extends IntegrationTest {
                 "Started suite.\n" +
                         "   PROXY: {} at port {} {}/{}",
                 PROXY_HOST, PROXY_PORT, PROXY_USER, PROXY_PASSWORD);
-    }
-
-    protected String getLocalIPAddress() {
-        try (final DatagramSocket socket = new DatagramSocket()) {
-            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
-            return socket.getLocalAddress().getHostAddress();
-        } catch (SocketException | UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     protected String getProxyLog() {

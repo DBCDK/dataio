@@ -82,7 +82,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>promat-connector</artifactId>
-            <version>2.2-SNAPSHOT</version>
+            <version>21.2.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

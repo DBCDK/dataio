@@ -21,7 +21,7 @@
         "state": "not_affected",
         "justification": "code_not_reachable",
         "response": ["will_not_fix"],
-        "detail": "Vulnerability present in com.hazelcast:hazelcast dependency, but the vulnerable functionality not reachable from external clients in our application context."
+        "detail": "Vulnerability present in com.hazelcast:hazelcast dependency, but the vulnerable functionality is not reachable from external clients in our application context."
       },
       "affects": [
         {

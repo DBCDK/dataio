@@ -93,6 +93,7 @@ pipeline {
                         projectBom:  'target/bom.json',
                         projectTeam: 'de-team',
                         projectType: 'java',
+                        projectVex: 'vex.json',
                     )
                 }
             }

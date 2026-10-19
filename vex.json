@@ -1,0 +1,33 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "PROJECT_TYPE",
+      "bom-ref": "PROJECT_UUID",
+      "name": "PROJECT_NAME",
+      "version": "PROJECT_VERSION"
+    }
+  },
+  "vulnerabilities": [
+    {
+      "id": "GHSA-6v25-8wq6-xq4j",
+      "source": {
+        "name": "GITHUB",
+        "url": "https://github.com/advisories"
+      },
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_reachable",
+        "response": ["will_not_fix"],
+        "detail": "Vulnerability present in com.hazelcast:hazelcast dependency, but the vulnerable functionality not reachable from external clients in our application context."
+      },
+      "affects": [
+        {
+          "ref": "PROJECT_UUID"
+        }
+      ]
+    }
+  ]
+}

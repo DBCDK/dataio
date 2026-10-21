@@ -8,9 +8,8 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessorgjs.javascript.GraalJsScript;
 import dk.dbc.dataio.jobprocessorgjs.logstore.LogStoreWriter;
-import dk.dbc.javascript.recordprocessing.FailRecord;
-import dk.dbc.javascript.recordprocessing.IgnoreRecord;
 import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +17,11 @@ import java.io.ByteArrayInputStream;
 
 public class ChunkItemProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkItemProcessor.class);
+
+    private static final String IGNORE_RECORD = "IgnoreRecord";
+    private static final String FAIL_RECORD = "FailRecord";
+    // Same tag job-processor2 sets. cli/diff matches on it, and the sinks and job-store line format show it as *b
+    private static final String FAIL_RECORD_DIAGNOSTIC_TAG = "dk.dbc.javascript.recordprocessing.FailRecord";
 
     private final long jobId;
     private final long chunkId;
@@ -81,25 +85,25 @@ public class ChunkItemProcessor {
                     .withTrackingId(chunkItem.getTrackingId());
 
         } catch (PolyglotException e) {
-            if (e.isHostException()) {
-                Throwable hostException = e.asHostException();
-                if (hostException instanceof IgnoreRecord) {
-                    return ChunkItem.ignoredChunkItem()
-                            .withId(chunkItem.getId())
-                            .withData(hostException.getMessage())
-                            .withType(ChunkItem.Type.STRING)
-                            .withTrackingId(chunkItem.getTrackingId());
-                }
-                if (hostException instanceof FailRecord) {
-                    Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.ERROR, hostException.getMessage());
-                    diagnostic.withTag(FailRecord.class.getName());
-                    return ChunkItem.failedChunkItem()
-                            .withId(chunkItem.getId())
-                            .withData(hostException.getMessage())
-                            .withType(ChunkItem.Type.STRING)
-                            .withTrackingId(chunkItem.getTrackingId())
-                            .withDiagnostics(diagnostic);
-                }
+            Value guestError = e.isGuestException() ? e.getGuestObject() : null;
+            String errorName = stringMember(guestError, "name");
+            if (IGNORE_RECORD.equals(errorName)) {
+                return ChunkItem.ignoredChunkItem()
+                        .withId(chunkItem.getId())
+                        .withData(stringMember(guestError, "message"))
+                        .withType(ChunkItem.Type.STRING)
+                        .withTrackingId(chunkItem.getTrackingId());
+            }
+            if (FAIL_RECORD.equals(errorName)) {
+                String message = stringMember(guestError, "message");
+                Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.ERROR, message);
+                diagnostic.withTag(FAIL_RECORD_DIAGNOSTIC_TAG);
+                return ChunkItem.failedChunkItem()
+                        .withId(chunkItem.getId())
+                        .withData(message)
+                        .withType(ChunkItem.Type.STRING)
+                        .withTrackingId(chunkItem.getTrackingId())
+                        .withDiagnostics(diagnostic);
             }
             return failedItem(chunkItem, e);
         } catch (Throwable t) {
@@ -112,6 +116,22 @@ public class ChunkItemProcessor {
                     JsInterop.logCollector.getEvents());
             JsInterop.logCollector.clearEvents();
         }
+    }
+
+    /**
+     * Returns the named member of a thrown JavaScript value as a string, or {@code null} when the
+     * value is absent, is not an object (scripts may throw primitives), or the member is not a
+     * string.
+     */
+    private static String stringMember(Value value, String member) {
+        if (value == null || !value.hasMembers()) {
+            return null;
+        }
+        Value memberValue = value.getMember(member);
+        if (memberValue == null || !memberValue.isString()) {
+            return null;
+        }
+        return memberValue.asString();
     }
 
     private ChunkItem failedItem(ChunkItem chunkItem, Throwable t) {

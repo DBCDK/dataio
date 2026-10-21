@@ -66,10 +66,6 @@
             <artifactId>jmx-metric-registry</artifactId>
         </dependency>
         <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-jslib</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>artemis-jakarta-client</artifactId>
         </dependency>

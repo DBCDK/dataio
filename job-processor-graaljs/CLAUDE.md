@@ -36,5 +36,6 @@ The Docker image must exist before running ITs — if you only changed test code
 - Chunk processing timeout (> 3 min) → `ProcessorHealth.signalFatal` → liveness probe fails →
   pod restarts.
 - `OutOfMemoryError` → `signalOutOfMemory` → same restart path.
-- JS `IgnoreRecord` → item output `IGNORED`; `FailRecord` or other exception → item output
-  `FAILURE` with diagnostics attached.
+- JS error named `IgnoreRecord` → item output `IGNORED`. JS error named `FailRecord` → `FAILURE`
+  with an ERROR diagnostic. Any other exception → `FAILURE` with a FATAL diagnostic. Matching is
+  on the error's `name` property, the business logic defines the classes itself.

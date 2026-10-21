@@ -28,6 +28,10 @@ class ChunkItemProcessorTest {
     private static final String SCRIPT_ID = "main.js";
     private static final String FUNCTION = "process";
     private static final String ADDITIONAL_ARGS = "{}";
+    // Mirrors the error classes the JavaScript business logic defines for itself
+    private static final String RECORD_ERRORS =
+            "class FailRecord extends Error { constructor(m) { super(m); this.name = 'FailRecord'; } }\n" +
+            "class IgnoreRecord extends Error { constructor(m) { super(m); this.name = 'IgnoreRecord'; } }\n";
 
     private static Engine engine;
 
@@ -102,11 +106,11 @@ class ChunkItemProcessorTest {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
-        String js = "export function process(d, s) {" +
-                " Java.type('dk.dbc.javascript.recordprocessing.IgnoreRecord').doThrow('skip'); }";
+        String js = RECORD_ERRORS + "export function process(d, s) { throw new IgnoreRecord('skip'); }";
         try (GraalJsScript script = scriptWith(js)) {
             ChunkItem result = processor(script).process(input);
             assertThat(result.getStatus(), is(ChunkItem.Status.IGNORE));
+            assertThat(new String(result.getData(), StandardCharsets.UTF_8), is("skip"));
         }
     }
 
@@ -115,12 +119,55 @@ class ChunkItemProcessorTest {
         ChunkItem input = new ChunkItemBuilder()
                 .setId(1).setData("hello").setTrackingId("t1")
                 .build();
+        String js = RECORD_ERRORS + "export function process(d, s) { throw new FailRecord('bad record'); }";
+        try (GraalJsScript script = scriptWith(js)) {
+            ChunkItem result = processor(script).process(input);
+            assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
+            assertThat(new String(result.getData(), StandardCharsets.UTF_8), is("bad record"));
+            Diagnostic diagnostic = result.getDiagnostics().getFirst();
+            assertThat(diagnostic.getLevel(), is(Diagnostic.Level.ERROR));
+            assertThat(diagnostic.getMessage(), is("bad record"));
+            assertThat(diagnostic.getTag(), is("dk.dbc.javascript.recordprocessing.FailRecord"));
+        }
+    }
+
+    @Test
+    void process_successItem_scriptThrowsErrorNamedFailRecord_returnsFailedItemWithErrorDiagnostic() throws IOException {
+        ChunkItem input = new ChunkItemBuilder()
+                .setId(1).setData("hello").setTrackingId("t1")
+                .build();
+        String js = "export function process(d, s) {" +
+                " const e = new Error('bad record'); e.name = 'FailRecord'; throw e; }";
+        try (GraalJsScript script = scriptWith(js)) {
+            ChunkItem result = processor(script).process(input);
+            assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
+            assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.ERROR));
+        }
+    }
+
+    @Test
+    void process_successItem_scriptThrowsPlainError_returnsFailedItemWithFatalDiagnostic() throws IOException {
+        ChunkItem input = new ChunkItemBuilder()
+                .setId(1).setData("hello").setTrackingId("t1")
+                .build();
+        try (GraalJsScript script = scriptWith("export function process(d, s) { throw new Error('boom'); }")) {
+            ChunkItem result = processor(script).process(input);
+            assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
+            assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
+        }
+    }
+
+    @Test
+    void process_successItem_scriptUsesJavaTypeFailRecord_returnsFailedItemWithFatalDiagnostic() throws IOException {
+        ChunkItem input = new ChunkItemBuilder()
+                .setId(1).setData("hello").setTrackingId("t1")
+                .build();
         String js = "export function process(d, s) {" +
                 " Java.type('dk.dbc.javascript.recordprocessing.FailRecord').doThrow('bad record'); }";
         try (GraalJsScript script = scriptWith(js)) {
             ChunkItem result = processor(script).process(input);
             assertThat(result.getStatus(), is(ChunkItem.Status.FAILURE));
-            assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.ERROR));
+            assertThat(result.getDiagnostics().getFirst().getLevel(), is(Diagnostic.Level.FATAL));
         }
     }
 

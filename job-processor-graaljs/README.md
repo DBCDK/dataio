@@ -92,10 +92,19 @@ One output item is produced for every input item, in the same order, with the sa
 | Input status | JavaScript result       | Output status |
 |--------------|-------------------------|---------------|
 | `SUCCESS`    | Script returns a value  | `SUCCESS`     |
-| `SUCCESS`    | Script throws `IgnoreRecord` | `IGNORED` |
-| `SUCCESS`    | Script throws `FailRecord` or any other exception | `FAILURE` with diagnostics |
+| `SUCCESS`    | Script throws an error named `IgnoreRecord` | `IGNORED` |
+| `SUCCESS`    | Script throws an error named `FailRecord` | `FAILURE` with an ERROR diagnostic |
+| `SUCCESS`    | Script throws any other exception | `FAILURE` with a FATAL diagnostic |
 | `FAILURE`    | (not executed)          | `IGNORED`     |
 | `IGNORED`    | (not executed)          | `IGNORED`     |
+
+The JavaScript signals `IgnoreRecord` and `FailRecord` with plain JavaScript errors. The processor
+matches on the thrown error's `name` property and uses its `message` as the item data. The
+business logic defines the classes itself.
+
+An exception whose stack trace contains "Illegal operation on control field" gets an ERROR
+diagnostic instead of FATAL, because it points to a malformed input record rather than a
+script fault.
 
 ---
 

@@ -40,6 +40,8 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,6 +68,15 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
                     .withHarvesterType(PeriodicJobsV3HarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS)
                     .withHoldingsSolrUrl("")
                     .withHoldingsFilter(PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS)
+                    .withSubmitterNumber("870970")
+    );
+
+    private final PeriodicJobsV3HarvesterConfig configWithoutOve = new PeriodicJobsV3HarvesterConfig(1, 2,
+            new PeriodicJobsV3HarvesterConfig.Content()
+                    .withFormat("testFormat")
+                    .withHarvesterType(PeriodicJobsV3HarvesterConfig.HarvesterType.STANDARD_WITH_HOLDINGS)
+                    .withHoldingsSolrUrl("")
+                    .withHoldingsFilter(PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_OVE)
                     .withSubmitterNumber("870970")
     );
 
@@ -127,6 +138,51 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
 
         assertThat("Addi content", new String(addiRecord.getContentData(), StandardCharsets.UTF_8),
                 is(new String(asCollection(getRecordContent(recordIdWithoutHoldings)).asBytes(), StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void addiRecordConfigWithoutOve_ExcludedWhenOveLibraryHasHoldings() throws HarvesterException {
+        RecordIdDTO recordId = new RecordIdDTO("id1", 870970);
+
+        when(holdingsItemsConnector.hasAnyHoldings(eq("id1"), eq(PeriodicJobsV3HarvesterConfig.OVE_AGENCY_IDS)))
+                .thenReturn(true);
+
+        AddiRecord addiRecord = new RecordsWithoutHoldingsHarvestOperation.RecordFetcher(
+                recordId, recordServiceConnector, holdingsItemsConnector, configWithoutOve)
+                .call();
+
+        assertThat("No addi record when an OVE library has holdings", addiRecord, is(nullValue()));
+    }
+
+    @Test
+    public void addiRecordConfigWithoutOve_IgnoresSubmitterHoldings() throws RecordServiceConnectorException, HarvesterException, JSONBException, MarcWriterException, IOException {
+        Instant creationTime = Instant.now();
+        final String trackingId = "-trackingId-";
+
+        RecordIdDTO recordId = new RecordIdDTO("id1", 870970);
+        RecordEntryDTO record = new RecordEntryDTO();
+        record.setRecordId(recordId);
+        record.setCreated(creationTime.toString());
+        record.setEnrichmentTrail("870970,191919");
+        record.setTrackingId(trackingId);
+        record.setContent(asJsonNode(getRecordContent(recordId)));
+
+        // Submitter's own agency has holdings, but neither OVE library does, so the record is still harvested
+        when(holdingsItemsConnector.hasAnyHoldings(eq("id1"), eq(Set.of(870970)))).thenReturn(true);
+        when(holdingsItemsConnector.hasAnyHoldings(eq("id1"), eq(PeriodicJobsV3HarvesterConfig.OVE_AGENCY_IDS)))
+                .thenReturn(false);
+
+        when(recordServiceConnector.getRecordDataCollection(
+                eq(new RecordIdDTO(recordId.getBibliographicRecordId(), 191919)),
+                any(RecordServiceConnector.Params.class)))
+                .thenReturn(List.of(record));
+
+        AddiRecord addiRecord = new RecordsWithoutHoldingsHarvestOperation.RecordFetcher(
+                recordId, recordServiceConnector, holdingsItemsConnector, configWithoutOve)
+                .call();
+
+        assertThat("Addi record created despite submitter holdings, since OVE libraries have none",
+                addiRecord, is(notNullValue()));
     }
 
     @Test
@@ -214,6 +270,30 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
         expected = "Found 9 records by combined rawrepo solr search and holdingssolr search.";
         actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
         assertThat("Found without holdings", actual, is(expected));
+
+        // Case 7: WithOUT OVE. Only one record has no holdings at the OVE libraries.
+        configWithoutOve.getContent().withSubmitterNumber("870970");
+        recordsWithoutHoldingsHarvestOperation.config = configWithoutOve;
+        when(recordsWithoutHoldingsHarvestOperation.search()).thenReturn(LIST_OF_10);
+        when(recordsWithoutHoldingsHarvestOperation.flush(
+                LIST_OF_10,
+                870970,
+                PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_OVE)).thenCallRealMethod();
+        when(holdingsItemsConnector.getRecordHoldings(SET_OF_10, PeriodicJobsV3HarvesterConfig.OVE_AGENCY_IDS))
+                .thenReturn(SET_OF_9);
+        expected = "Found 1 records by combined rawrepo solr search and holdingssolr search.";
+        actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
+        assertThat("Found without OVE holdings", actual, is(expected));
+
+        // Case 8: WithOUT OVE, different submitter. Result is unaffected, since the OVE agency set is fixed.
+        configWithoutOve.getContent().withSubmitterNumber("999999");
+        when(recordsWithoutHoldingsHarvestOperation.flush(
+                LIST_OF_10,
+                999999,
+                PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_OVE)).thenCallRealMethod();
+        expected = "Found 1 records by combined rawrepo solr search and holdingssolr search.";
+        actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
+        assertThat("Found without OVE holdings regardless of submitter", actual, is(expected));
     }
 
     private static MarcBinding getRecordContent(RecordIdDTO recordId) throws MarcWriterException, IOException {

@@ -3,6 +3,9 @@
   "jdbc": {
     "jdbc/dataio/rawrepo-test": {
       "url": "${RAWREPO_TEST_DB_URL}"
+    },
+    "jdbc/dataio/rawrepo-staging": {
+      "url": "${RAWREPO_STAGING_DB_URL}"
     }
   }
 }

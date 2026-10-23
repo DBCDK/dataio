@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
  * Specialized harvest operation for only records which doesn't have holdings
  */
 public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
-    private static Logger LOGGER = LoggerFactory.getLogger(RecordsWithoutHoldingsHarvestOperation.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecordsWithoutHoldingsHarvestOperation.class);
     protected HoldingsItemsConnector holdingsItemsConnector;
     protected int MAX_BUF_SIZE = 200;
 
@@ -79,7 +79,7 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
         for (String recId : recIds) {
             buffer.add(recId);
             if (buffer.size() >= MAX_BUF_SIZE) {
-                LOGGER.info(String.format("flushing. Progress: %d / %d", progress, size));
+                LOGGER.info("flushing. Progress: {} / {}", progress, size);
                 numFound += flush(buffer, agencyId, config.getContent().getHoldingsFilter()).size();
             }
             progress += 1;
@@ -90,7 +90,10 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
 
     protected Set<String> flush(List<String> buffer, Integer agencyId, PeriodicJobsV3HarvesterConfig.HoldingsFilter holdingsFilter) {
         try {
-            Set<String> found = holdingsItemsConnector.getRecordHoldings(new HashSet<String>(buffer), Set.of(agencyId));
+            Set<Integer> agencyIds = holdingsFilter == PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_OVE
+                    ? PeriodicJobsV3HarvesterConfig.OVE_AGENCY_IDS
+                    : Set.of(agencyId);
+            Set<String> found = holdingsItemsConnector.getRecordHoldings(new HashSet<>(buffer), agencyIds);
             if (holdingsFilter == PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITH_HOLDINGS) {
                 return found;
             } else {
@@ -130,17 +133,21 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
             final AddiMetaData addiMetaData = new AddiMetaData()
                     .withBibliographicRecordId(recordId.getBibliographicRecordId());
             try {
-                int submitter = Integer.parseInt(config.getContent().getSubmitterNumber());
-                boolean hasHoldings = holdingsItemsConnector.hasAnyHoldings(recordId.getBibliographicRecordId(), Set.of(submitter));
+                PeriodicJobsV3HarvesterConfig.HoldingsFilter holdingsFilter = config.getContent().getHoldingsFilter();
+                Set<Integer> agencyIds = holdingsFilter == PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_OVE
+                        ? PeriodicJobsV3HarvesterConfig.OVE_AGENCY_IDS
+                        : Set.of(Integer.parseInt(config.getContent().getSubmitterNumber()));
+                boolean hasHoldings = holdingsItemsConnector.hasAnyHoldings(recordId.getBibliographicRecordId(), agencyIds);
 
                 // If there are no holdings and WITH_HOLDINGS filter is specified, no addirecord is created
-                if (config.getContent().getHoldingsFilter() == PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITH_HOLDINGS &&
+                if (holdingsFilter == PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITH_HOLDINGS &&
                         !hasHoldings) {
                     return null;
                 }
 
-                // If there are holdings and WITHOUT_HOLDINGS filter is specified, no addirecord is created
-                if (config.getContent().getHoldingsFilter() == PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS &&
+                // If there are holdings and WITHOUT_HOLDINGS or WITHOUT_OVE filter is specified, no addirecord is created
+                if ((holdingsFilter == PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_HOLDINGS ||
+                        holdingsFilter == PeriodicJobsV3HarvesterConfig.HoldingsFilter.WITHOUT_OVE) &&
                         hasHoldings) {
                     return null;
                 }

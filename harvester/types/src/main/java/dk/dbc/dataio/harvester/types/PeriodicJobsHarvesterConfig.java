@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PeriodicJobsHarvesterConfig
@@ -17,7 +18,38 @@ public class PeriodicJobsHarvesterConfig
         implements Serializable {
 
     public enum HarvesterType {STANDARD, DAILY_PROOFING, SUBJECT_PROOFING, STANDARD_WITH_HOLDINGS, STANDARD_WITHOUT_EXPANSION, HAS_COVER_PAGE}
-    public enum HoldingsFilter {WITH_HOLDINGS, WITHOUT_HOLDINGS}
+
+    // WITH_HOLDINGS = Only records with holdings are returned
+    // WITHOUT_HOLDINGS = Only records without holdings on any agency are returned
+    // WITHOUT_OVE = Only records without holdings on OVE/CB agencies are returned
+    public enum HoldingsFilter {WITH_HOLDINGS, WITHOUT_HOLDINGS, WITHOUT_OVE}
+
+    /**
+     * Agency IDs for OVE libraries (central libraries holding extra copies).
+     * The list can be found using
+     * <p>
+     * curl --request POST \
+     * --url http://vipcore.iscrum-vip-extern-test.svc.cloud.dbc.dk/1.0/api/libraryrules \
+     * --header 'Content-Type: application/json' \
+     * --data '{
+     * "libraryRule": [
+     * {
+     * "name": "regional_obligations",
+     * "bool": true
+     * }
+     * ]
+     * }'
+     * Maybe the list should be dynamic and loaded on use instead of hard coded, but it is not this day.
+     */
+    public static final Set<Integer> OVE_AGENCY_IDS = Set.of(
+            715700,
+            726500,
+            746100,
+            763000,
+            765700,
+            785100,
+            866000
+    );
 
     public enum PickupType {HTTP, MAIL, FTP, SFTP, ANY_SINK}
 

@@ -13,8 +13,18 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
-public class BibliographicRecordFactory extends DocumentTransformer {
-    private final BibliographicRecordExtraDataMarshaller bibliographicRecordExtraDataMarshaller = new BibliographicRecordExtraDataMarshaller();
+/**
+ * Builds the bibliographic records sent to the update service.
+ * <p>
+ * One instance may be shared between threads. The XML parser and the JAXB marshaller it uses
+ * are not thread-safe, so each thread works on its own copies of them.
+ * </p>
+ */
+public class BibliographicRecordFactory {
+    private final ThreadLocal<DocumentTransformer> documentTransformer =
+            ThreadLocal.withInitial(DocumentTransformer::new);
+    private final ThreadLocal<BibliographicRecordExtraDataMarshaller> bibliographicRecordExtraDataMarshaller =
+            ThreadLocal.withInitial(BibliographicRecordExtraDataMarshaller::new);
 
     public BibliographicRecord toBibliographicRecord(MarcRecord marcRecord, String queueProvider) throws BibliographicRecordFactoryException {
         return toBibliographicRecord(MarcRecordFactory.toMarcXchange(marcRecord), queueProvider);
@@ -23,7 +33,7 @@ public class BibliographicRecordFactory extends DocumentTransformer {
     public BibliographicRecord toBibliographicRecord(byte[] bytes)
             throws BibliographicRecordFactoryException {
         try {
-            Document document = byteArrayToDocument(bytes);
+            Document document = documentTransformer.get().byteArrayToDocument(bytes);
             BibliographicRecord bibliographicRecord = new BibliographicRecord();
             bibliographicRecord.setRecordSchema("info:lc/xmlns/marcxchange-v1");
             bibliographicRecord.setRecordPacking("xml");
@@ -47,7 +57,7 @@ public class BibliographicRecordFactory extends DocumentTransformer {
             bibliographicRecordExtraData.setPriority(1000);  // hardcoded default priority
 
             try {
-                extraRecordData.getContent().add(bibliographicRecordExtraDataMarshaller.toXmlDocument(bibliographicRecordExtraData).getDocumentElement());
+                extraRecordData.getContent().add(bibliographicRecordExtraDataMarshaller.get().toXmlDocument(bibliographicRecordExtraData).getDocumentElement());
             } catch (JAXBException e) {
                 throw new BibliographicRecordFactoryException("Unable to add extra data to bibliographic record", e);
             }

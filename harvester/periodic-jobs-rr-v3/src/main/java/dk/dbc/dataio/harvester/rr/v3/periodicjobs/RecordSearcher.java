@@ -33,15 +33,13 @@ public class RecordSearcher implements AutoCloseable {
      * @param solrZkHost Solr cloud zookeeper connect string
      */
     public RecordSearcher(String solrZkHost) {
-        String[] hostsAndChrootAndCollection = solrZkHost.split("/", 3);
+        String[] hostsAndChrootAndCollection = solrZkHost.split("/", 2);
         List<String> hosts = Arrays.stream(hostsAndChrootAndCollection[0].split(", *")).map(s -> s.contains(":") ? s : s + ":2181").collect(Collectors.toList());
-        if(hostsAndChrootAndCollection.length == 2) {
+        if(hostsAndChrootAndCollection.length == 1) {
             solrClient = new CloudHttp2SolrClient.Builder(hosts, Optional.empty())
-                    .withDefaultCollection(hostsAndChrootAndCollection[1])
                     .build();
-        } else if(hostsAndChrootAndCollection.length == 3) {
-            solrClient = new CloudHttp2SolrClient.Builder(hosts, Optional.of(hostsAndChrootAndCollection[1]))
-                    .withDefaultCollection(hostsAndChrootAndCollection[2])
+        } else if(hostsAndChrootAndCollection.length == 2) {
+            solrClient = new CloudHttp2SolrClient.Builder(hosts, Optional.of("/" + hostsAndChrootAndCollection[1]))
                     .build();
         } else {
             throw new IllegalArgumentException("Invalid zookeeper url for SolR: " + solrZkHost);

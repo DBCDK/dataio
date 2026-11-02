@@ -5,7 +5,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.solr.SolrSearch;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.CloudHttp2SolrClient;
 import org.apache.solr.common.SolrDocument;
 
 import java.io.IOException;
@@ -27,15 +27,25 @@ public class RecordSearcher implements AutoCloseable {
     private static String UNIQUE_KEY_FIELD = "id";
     private static int FETCH_SIZE = 5000;
 
-    private final CloudSolrClient solrClient;
+    private final CloudHttp2SolrClient solrClient;
 
     /**
      * @param solrZkHost Solr cloud zookeeper connect string
      */
     public RecordSearcher(String solrZkHost) {
-        String[] hostsAndCollection = solrZkHost.split("/", 2);
-        List<String> hosts = Arrays.stream(hostsAndCollection[0].split(", *")).map(s -> s.contains(":") ? s : s + ":2181").collect(Collectors.toList());
-        solrClient = new CloudSolrClient.Builder(hosts, Optional.of(hostsAndCollection).filter(sa -> sa.length > 1).map(sa -> "/" + sa[1])).build();
+        String[] hostsAndChrootAndCollection = solrZkHost.split("/", 3);
+        List<String> hosts = Arrays.stream(hostsAndChrootAndCollection[0].split(", *")).map(s -> s.contains(":") ? s : s + ":2181").collect(Collectors.toList());
+        if(hostsAndChrootAndCollection.length == 2) {
+            solrClient = new CloudHttp2SolrClient.Builder(hosts, Optional.empty())
+                    .withDefaultCollection(hostsAndChrootAndCollection[1])
+                    .build();
+        } else if(hostsAndChrootAndCollection.length == 3) {
+            solrClient = new CloudHttp2SolrClient.Builder(hosts, Optional.of(hostsAndChrootAndCollection[1]))
+                    .withDefaultCollection(hostsAndChrootAndCollection[2])
+                    .build();
+        } else {
+            throw new IllegalArgumentException("Invalid zookeeper url for SolR: " + solrZkHost);
+        }
         solrClient.connect();
     }
 

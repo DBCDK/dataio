@@ -14,10 +14,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -93,22 +93,35 @@ public class RawRepo3Connector {
         SOLR_ZK("SOLR_ZK_HOST");
 
         private final String key;
-        private static final Map<RawRepoService, String> MAP = new EnumMap<>(RawRepoService.class);
+        private static final Map<DataSource, Map<RawRepoService, String>> CACHE = new ConcurrentHashMap<>();
         private static final String ERROR_MSG = "Unable to lookup RawRepoService: ";
 
         RawRepoService(String key) {
             this.key = key;
         }
 
+        /**
+         * Returns the value configured for this service in the configurations table of the given data source.
+         * Values are cached per data source and service for the lifetime of the JVM.
+         *
+         * @param dataSource raw-repo data source to look up the value in
+         * @return configured value
+         * @throws IllegalStateException if the value is missing or the lookup fails
+         */
         public String getUrl(DataSource dataSource) {
-            return MAP.computeIfAbsent(this, k -> lookup(key, dataSource));
+            return CACHE.computeIfAbsent(dataSource, ds -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(this, service -> lookup(key, dataSource));
         }
 
         private String lookup(String key, DataSource dataSource) {
-            try (PreparedStatement ps = dataSource.getConnection().prepareStatement("select value from configurations where key = ?")) {
+            try (Connection connection = dataSource.getConnection();
+                 PreparedStatement ps = connection.prepareStatement("select value from configurations where key = ?")) {
                 ps.setString(1, key);
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) return rs.getString(1);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getString(1);
+                    }
+                }
             } catch (SQLException e) {
                 throw new IllegalStateException(ERROR_MSG + key, e);
             }

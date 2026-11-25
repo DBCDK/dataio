@@ -133,7 +133,8 @@ public class JobNotificationRepositoryTest {
         jobNotificationRepository.flushNotifications();
 
         assertThat("1st notification status", notifications.get(0).getStatus(), is(Notification.Status.COMPLETED));
-        assertThat("2nd notification status", notifications.get(1).getStatus(), is(Notification.Status.WAITING));
+        assertThat("2nd notification status", notifications.get(1).getStatus(), is(Notification.Status.FAILED));
+        assertThat("2nd notification statusMessage", notifications.get(1).getStatusMessage(), is(notNullValue()));
         assertThat("3rd notification status", notifications.get(2).getStatus(), is(Notification.Status.COMPLETED));
     }
 

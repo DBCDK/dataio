@@ -18,7 +18,7 @@ import dk.dbc.httpclient.PathBuilder;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.Response;
 import net.jodah.failsafe.RetryPolicy;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.apache5.connector.Apache5ConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -134,7 +134,7 @@ public class FilesIT {
 
     private static Client newRestClient() {
         ClientConfig config = new ClientConfig();
-        config.connectorProvider(new ApacheConnectorProvider());
+        config.connectorProvider(new Apache5ConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, BUFFER_SIZE);
         config.register(new JacksonFeature());
         return HttpClient.newClient(config);

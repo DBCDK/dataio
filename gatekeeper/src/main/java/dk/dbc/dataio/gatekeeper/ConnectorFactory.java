@@ -7,9 +7,13 @@ import dk.dbc.dataio.registry.JMXMetricRegistry;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.invariant.InvariantUtil;
 import jakarta.ws.rs.client.Client;
-import org.apache.http.client.config.RequestConfig;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
+import org.glassfish.jersey.apache5.connector.Apache5ClientProperties;
+import org.glassfish.jersey.apache5.connector.Apache5ConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -30,13 +34,19 @@ public class ConnectorFactory {
         LOGGER.info("fileStoreServiceEndpoint: {}", fileStoreServiceEndpoint);
         LOGGER.info("jobStoreServiceEndpoint: {}", jobStoreServiceEndpoint);
 
+        final PoolingHttpClientConnectionManager connectionManager =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                .setConnectTimeout(Timeout.ofSeconds(5))
+                                .build())
+                        .build();
         final ClientConfig config = new ClientConfig();
         config.register(new JacksonFeature());
-        config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom()
-                .setConnectTimeout(5000)
-                .setSocketTimeout(180000)
+        config.property(Apache5ClientProperties.CONNECTION_MANAGER, connectionManager);
+        config.property(Apache5ClientProperties.REQUEST_CONFIG, RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofMilliseconds(180000))
                 .build());
-        config.connectorProvider(new ApacheConnectorProvider());
+        config.connectorProvider(new Apache5ConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
         client = HttpClient.newClient(config);
         fileStoreServiceConnector = new FileStoreServiceConnector(client, UserAgent.forInternalRequests(), fileStoreServiceEndpoint);

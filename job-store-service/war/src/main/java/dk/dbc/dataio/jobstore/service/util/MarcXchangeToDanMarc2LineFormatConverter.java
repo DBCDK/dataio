@@ -30,11 +30,12 @@ public class MarcXchangeToDanMarc2LineFormatConverter extends AbstractToLineForm
         } catch (MarcReaderException e) {
             throw new JobStoreException("Error reading chunk item data as MarcXchange", e);
         }
-
-        if (record != null) {
-            replaceControlFields(record);
-            addDiagnosticsToMarcRecord(diagnostics, record);
+        if (record == null) {
+            throw new JobStoreException("Chunk item contains no MarcXchange record");
         }
+
+        replaceControlFields(record);
+        addDiagnosticsToMarcRecord(diagnostics, record);
 
         try {
             return writer.write(record, encodedAs);

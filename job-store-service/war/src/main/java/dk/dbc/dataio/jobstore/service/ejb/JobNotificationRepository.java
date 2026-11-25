@@ -123,8 +123,8 @@ public class JobNotificationRepository extends RepositoryBase {
             // and therefore avoid mail bombings
             entityManager.flush();
             send(mailNotification);
-        } catch (JobStoreException e) {
-            LOGGER.error("Notification processing failed", e);
+        } catch (JobStoreException | RuntimeException e) {
+            LOGGER.error("Processing of notification {} failed", notification.getId(), e);
             notification.setStatus(Notification.Status.FAILED);
             notification.setStatusMessage(StringUtil.getStackTraceString(e, ""));
             return false;

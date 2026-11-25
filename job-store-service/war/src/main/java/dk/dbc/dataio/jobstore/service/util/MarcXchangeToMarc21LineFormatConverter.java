@@ -31,10 +31,11 @@ public class MarcXchangeToMarc21LineFormatConverter extends AbstractToLineFormat
         } catch (MarcReaderException e) {
             throw new JobStoreException("Error reading chunk item data as MarcXchange", e);
         }
-
-        if (record != null) {
-            addDiagnosticsToMarcRecord(diagnostics, record);
+        if (record == null) {
+            throw new JobStoreException("Chunk item contains no MarcXchange record");
         }
+
+        addDiagnosticsToMarcRecord(diagnostics, record);
 
         try {
             return writer.write(record, encodedAs);

@@ -58,6 +58,15 @@ public class MarcXchangeToMarc21LineFormatConverterTest {
     }
 
     @Test
+    void convertChunkItemWithoutRecord() {
+        ChunkItem chunkItem = buildChunkItem(
+                "<collection xmlns=\"info:lc/xmlns/marcxchange-v1\"/>", ChunkItem.Status.FAILURE);
+        JobStoreException e = Assertions.assertThrows(JobStoreException.class,
+                () -> converter.convert(chunkItem, StandardCharsets.UTF_8, diagnostics));
+        assertThat(e.getMessage(), is("Chunk item contains no MarcXchange record"));
+    }
+
+    @Test
     public void convertChunkItemWithMultipleDiagnostics() throws JobStoreException {
         final String firstDiagnosticMessage = "This is the first diagnostic FATAL message";
         final String secondDiagnosticMessage = "This is the second diagnostic WARNING message";

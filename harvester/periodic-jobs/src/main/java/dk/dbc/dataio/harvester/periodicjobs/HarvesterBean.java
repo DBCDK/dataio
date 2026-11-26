@@ -89,15 +89,15 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     @Override
     public int executeFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
-        HarvestOperation harvestOperation = getHarvesterOperation(config);
-
-        return harvestOperation.execute();
+        try (HarvestOperation harvestOperation = getHarvesterOperation(config)) {
+            return harvestOperation.execute();
+        }
     }
 
     public String validateQuery(PeriodicJobsHarvesterConfig config) throws HarvesterException {
-        HarvestOperation harvestOperation = getHarvesterOperation(config);
-
-        return harvestOperation.validateQuery();
+        try (HarvestOperation harvestOperation = getHarvesterOperation(config)) {
+            return harvestOperation.validateQuery();
+        }
     }
 
     private interface HarvesterChoice {

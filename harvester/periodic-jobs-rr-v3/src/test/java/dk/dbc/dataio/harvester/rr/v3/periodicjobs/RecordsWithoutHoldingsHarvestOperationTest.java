@@ -6,11 +6,16 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.bfs.api.BinaryFileFsImpl;
+import dk.dbc.dataio.bfs.api.BinaryFileStore;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.MarcJSonCollection;
 import dk.dbc.dataio.harvester.types.PeriodicJobsV3HarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepo3Connector;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.Leader;
 import dk.dbc.marc.binding.MarcBinding;
@@ -21,6 +26,7 @@ import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -37,6 +43,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -46,6 +53,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperationTest {
@@ -294,6 +302,25 @@ public class RecordsWithoutHoldingsHarvestOperationTest extends HarvestOperation
         expected = "Found 1 records by combined rawrepo solr search and holdingssolr search.";
         actual = recordsWithoutHoldingsHarvestOperation.validateQuery();
         assertThat("Found without OVE holdings regardless of submitter", actual, is(expected));
+    }
+
+    @Test
+    void closeClosesHoldingsItemsConnector() {
+        RecordsWithoutHoldingsHarvestOperation harvestOperation = new RecordsWithoutHoldingsHarvestOperation(
+                configWithHoldings,
+                mock(BinaryFileStore.class),
+                mock(FileStoreServiceConnector.class),
+                mock(FlowStoreServiceConnector.class),
+                mock(JobStoreServiceConnector.class),
+                mock(WeekResolverConnector.class),
+                mock(ExecutorService.class),
+                mock(RawRepo3Connector.class),
+                holdingsItemsConnector,
+                mock(FbiInfoConnector.class));
+
+        harvestOperation.close();
+
+        verify(holdingsItemsConnector).close();
     }
 
     private static MarcBinding getRecordContent(RecordIdDTO recordId) throws MarcWriterException, IOException {

@@ -42,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HasCoverHarvestOperationTest {
@@ -105,6 +106,7 @@ class HasCoverHarvestOperationTest {
         RecordIdDTO recordWithCover = new RecordIdDTO("id2", 123456);
         when(fbiInfoConnector.hasCoverFilter(any())).thenReturn(Set.of(recordWithCover));
         assertThat("records harvested", harvestOperation.execute(recordsIdFile), is(9));
+        verify(fbiInfoConnector).hasCoverFilter(any());
     }
 
     private HarvestOperation newHarvestOperation(PeriodicJobsV3HarvesterConfig config) throws HarvesterException {

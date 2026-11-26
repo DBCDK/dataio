@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.dependencytracking;
 import com.hazelcast.cluster.Member;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.XmlConfigBuilder;
+import com.hazelcast.core.ExecutionCallback;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IExecutorService;
 import jakarta.servlet.ServletContextListener;
@@ -44,9 +45,38 @@ public class Hazelcast implements ServletContextListener {
         return config;
     }
 
-    public static void executeOnMaster(Callable callable) {
-        IExecutorService svc = INSTANCE.getExecutorService("default");
-        svc.submitToMember(callable, master());
+    /**
+     * Submits a task for execution on the master member.
+     * <p>
+     * Submission does not wait for the task. A failure, whether in delivery to the master or in the
+     * task itself, is logged at ERROR, since the caller has no other way of learning about it.
+     *
+     * @param callable task to execute on the master
+     * @param <T>      result type of the task
+     */
+    public static <T> void executeOnMaster(Callable<T> callable) {
+        final Member master = master();
+        final IExecutorService svc = INSTANCE.getExecutorService("default");
+        svc.submitToMember(callable, master, new LoggingExecutionCallback<>(callable, master));
+    }
+
+    static class LoggingExecutionCallback<T> implements ExecutionCallback<T> {
+        private final Callable<T> callable;
+        private final Member master;
+
+        LoggingExecutionCallback(Callable<T> callable, Member master) {
+            this.callable = callable;
+            this.master = master;
+        }
+
+        @Override
+        public void onResponse(T response) {
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+            LOGGER.error("Task {} failed on master {}", callable, master, t);
+        }
     }
 
     private static HazelcastInstance getInstance() {

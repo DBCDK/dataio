@@ -65,8 +65,23 @@
                 <scope>compile</scope>
             </dependency>
             <dependency>
+                <groupId>jakarta.inject</groupId>
+                <artifactId>jakarta.inject-api</artifactId>
+                <version>${jakarta-inject.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <!-- The Jakarta EE 11 platform API jars contain no classes and only aggregate the individual
+                 API artifacts, so every level that the parent POMs mark as provided needs an override
+                 for its APIs to end up in the shaded jar. -->
+            <dependency>
                 <groupId>jakarta.platform</groupId>
                 <artifactId>jakarta.jakartaee-api</artifactId>
+                <version>${jakartaee.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-core-api</artifactId>
                 <version>${jakartaee.version}</version>
                 <scope>compile</scope>
             </dependency>

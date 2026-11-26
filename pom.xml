@@ -34,7 +34,7 @@
         <team>de-team</team>
 
         <!-- java runtime version -->
-        <java.rt.version>21</java.rt.version>
+        <java.rt.version>25</java.rt.version>
 
         <!-- extra JVM args for surefire/failsafe, set with -DargLine=... -->
         <argLine></argLine>

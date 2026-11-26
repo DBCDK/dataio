@@ -1,6 +1,7 @@
 package dk.dbc.dataio.harvester.rr.v3.periodicjobs;
 
 import dk.dbc.dataio.bfs.api.BinaryFile;
+import dk.dbc.dataio.bfs.api.BinaryFileFsImpl;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -19,6 +20,7 @@ import dk.dbc.testee.NonContainerManagedExecutorService;
 import dk.dbc.testee.SameThreadExecutorService;
 import dk.dbc.weekresolver.connector.WeekResolverConnector;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
+import jakarta.ws.rs.ProcessingException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,20 +30,24 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static dk.dbc.dataio.commons.types.Constants.ZONE_CPH;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -117,6 +123,44 @@ public class HarvestOperationTest {
         RecordIdDTO r2 = new RecordIdDTO("id10", 987654);
         verify(recordServiceConnector).getRecordDataCollection(eq(r1), any());
         verify(recordServiceConnector).getRecordDataCollection(eq(r2), any());
+        verify(recordServiceConnector).close();
+    }
+
+    @Test
+    void executeWithRecordIdsFileUsesAndClosesOneRecordServiceConnector() throws HarvesterException, IOException {
+        Path recordIds = Files.copy(Paths.get("src/test/resources/record-ids-noinvalid.txt"),
+                tmpFolder.resolve("record-ids-noinvalid.txt"), StandardCopyOption.REPLACE_EXISTING);
+        PeriodicJobsV3HarvesterConfig config = new PeriodicJobsV3HarvesterConfig(1, 2,
+                new PeriodicJobsV3HarvesterConfig.Content()
+                        .withDestination("-destination-")
+                        .withFormat("-format-")
+                        .withSubmitterNumber("123456"));
+        HarvestOperation harvestOperation = newHarvestOperation(config);
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+
+        assertThat("records harvested", harvestOperation.execute(new BinaryFileFsImpl(recordIds)), is(10));
+
+        verify(harvestOperation, times(1)).createRecordServiceConnector();
+        verify(recordServiceConnector).close();
+        verify(harvestOperation, times(1)).filter(any());
+    }
+
+    @Test
+    void executeClosesRecordServiceConnectorWhenFetchFails() throws Exception {
+        PeriodicJobsV3HarvesterConfig config = new PeriodicJobsV3HarvesterConfig(1, 2,
+                new PeriodicJobsV3HarvesterConfig.Content()
+                        .withDestination("-destination-")
+                        .withFormat("-format-")
+                        .withSubmitterNumber("123456"));
+        HarvestOperation harvestOperation = newHarvestOperation(config);
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+        when(recordServiceConnector.getRecordDataCollection(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenThrow(new ProcessingException("Connection refused"));
+
+        assertThrows(HarvesterException.class,
+                () -> harvestOperation.execute(List.of(new RecordIdDTO("id1", 123456))));
+
+        verify(recordServiceConnector).close();
     }
 
     private HarvestOperation newHarvestOperation(PeriodicJobsV3HarvesterConfig config) throws HarvesterException {

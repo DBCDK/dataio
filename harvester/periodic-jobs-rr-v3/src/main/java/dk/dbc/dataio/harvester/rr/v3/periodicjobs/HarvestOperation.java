@@ -51,7 +51,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-public class HarvestOperation {
+public class HarvestOperation implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
     static int MAX_NUMBER_OF_TASKS = 10;
@@ -226,22 +226,17 @@ public class HarvestOperation {
      * @throws HarvesterException on failure to complete harvest operation
      */
     int execute(BinaryFile recordIds) throws HarvesterException {
-        RecordServiceConnector recordServiceConnector = null;
         try (RecordIdFile recordIdFile = new RecordIdFile(recordIds)) {
-            recordServiceConnector = createRecordServiceConnector();
-            List<RecordIdDTO> recordIdDTOS = filter(Lists.newArrayList(recordIdFile.iterator()));
-            return execute(recordIdDTOS);
+            return execute(Lists.newArrayList(recordIdFile.iterator()));
         } finally {
             recordIds.delete();
-            if (recordServiceConnector != null) {
-                recordServiceConnector.close();
-            }
         }
     }
 
     int execute(List<RecordIdDTO> recordIds) throws HarvesterException {
+        RecordServiceConnector recordServiceConnector = null;
         try (JobBuilder jobBuilder = createJobBuilder()) {
-            RecordServiceConnector recordServiceConnector = createRecordServiceConnector();
+            recordServiceConnector = createRecordServiceConnector();
             Iterator<RecordIdDTO> recordIdsIterator = filter(recordIds).iterator();
             if (recordIdsIterator.hasNext()) {
                 List<RecordFetcher> fetchRecordTasks;
@@ -273,7 +268,22 @@ public class HarvestOperation {
         } catch (ExecutionException | JobStoreServiceConnectorException e) {
             LOGGER.error("Harvest operation exception:", e);
             throw new HarvesterException("Unable to complete harvest operation", e);
+        } finally {
+            if (recordServiceConnector != null) {
+                recordServiceConnector.close();
+            }
         }
+    }
+
+    /**
+     * Releases the resources this harvest operation holds for its whole lifetime.
+     * <p>
+     * The base implementation holds none. Subclasses that create long-lived
+     * clients in their constructor close them here.
+     * </p>
+     */
+    @Override
+    public void close() {
     }
 
     private RawRepo3Connector createRawRepoConnector(PeriodicJobsV3HarvesterConfig config) {

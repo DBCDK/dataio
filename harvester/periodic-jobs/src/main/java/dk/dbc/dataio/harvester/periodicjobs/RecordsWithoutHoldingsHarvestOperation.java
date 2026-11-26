@@ -64,6 +64,15 @@ public class RecordsWithoutHoldingsHarvestOperation extends HarvestOperation {
                 : createHoldingsItemsConnector(config);
     }
 
+    /**
+     * Closes the holdings items connector, which otherwise keeps its HTTP
+     * connection pool and idle connection evictor thread alive.
+     */
+    @Override
+    public void close() {
+        holdingsItemsConnector.close();
+    }
+
     private HoldingsItemsConnector createHoldingsItemsConnector(PeriodicJobsHarvesterConfig config) {
         return new HoldingsItemsConnector(config.getContent().getHoldingsSolrUrl());
     }

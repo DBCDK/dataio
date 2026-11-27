@@ -52,6 +52,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
     private static final String ARTEMIS_ALIAS = "dataio-artemis";
     private static final String LOGSTORE = "dataio-logstore";
     private static final String JOBSTORE_SERVICE_ALIAS = "dataio-jobstore-service";
+    static final int HAZELCAST_DATA_PORT = 5801;
     private static final LocalDateTime oldJobDateTime = LocalDateTime.now().minusDays(JOB_EXPIRATION_AGE_IN_DAYS + 2);
     private static final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now().minusDays(JOB_EXPIRATION_AGE_IN_DAYS - 1);
     private static final LocalDateTime jobFromTheDayBeforeThedayBeforeYesterday = LocalDateTime.now().minusDays(3);
@@ -168,7 +169,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("TZ", "Europe/Copenhagen")
                 .withEnv("DEVELOPER", "on")
 //                .withEnv("REMOTE_DEBUGGING_HOST", getDebuggingHost())
-                .withExposedPorts(4848, 8080)
+                .withExposedPorts(4848, 8080, HAZELCAST_DATA_PORT)
                 .waitingFor(Wait.forHttp("/dataio/job-store-service/status")
                         .forPort(8080)
                         .withReadTimeout(Duration.of(10, ChronoUnit.SECONDS)))
